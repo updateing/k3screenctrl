@@ -4,24 +4,23 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/poll.h>
 
 #include "common.h"
 #include "logging.h"
 #include "serial_port.h"
 
 int g_serial_fd = -1;
+int g_poll_loop_break_flag = 0;
+void (*g_serial_pollin_callback)();
 
 int serial_setup(const char* dev_path) {
 	struct termios serial_termios;
 
-	g_serial_fd = open(dev_path, O_RDWR | O_NOCTTY);
+	g_serial_fd = open(dev_path, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (g_serial_fd == -1) {
 		syslog(LOG_CRIT, "could not open %s\n", dev_path);
 		return FAILURE;
-	}
-
-	if (fcntl(g_serial_fd, F_SETFL, 0) < 0) {
-		syslog(LOG_WARNING, "fcntl() failed. Screen may not work properly\n");
 	}
 
 	if (tcgetattr(g_serial_fd, &serial_termios)) {
@@ -66,4 +65,37 @@ void serial_close() {
 
 int serial_write(const unsigned char* data, int len) {
 	return write(g_serial_fd, data, len);
+}
+
+int serial_read(unsigned char* buf, int maxlen) {
+	return read(g_serial_fd, buf, maxlen);
+}
+
+void serial_set_pollin_callback(void (*callback)()) {
+	g_serial_pollin_callback = callback;
+}
+
+void serial_break_poll_loop() {
+	g_poll_loop_break_flag = 1;
+}
+
+void serial_start_poll_loop() {
+	struct pollfd fds[1];
+	fds[0].fd = g_serial_fd;
+	fds[0].events = POLLIN;
+
+	while (true) {
+		int result = poll(fds, sizeof(fds) / sizeof(struct pollfd), SERIAL_POLL_INTERVAL_MS);
+		if (result < 0) {
+			syslog(LOG_ERR, "poll() failed: ", strerror(errno));
+			return;
+		} else if (result > 0) {
+			g_serial_pollin_callback();
+		}
+
+		if (g_poll_loop_break_flag) {
+			g_poll_loop_break_flag = 0;
+			return;
+		}
+	}
 }
