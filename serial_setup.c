@@ -23,20 +23,16 @@ int serial_setup(const char* dev_path) {
 		return FAILURE;
 	}
 
-	cfsetispeed(&termios, B115200); // Wow magic
-	cfsetospeed(&termios, B115200);
-	termios.c_lflag &= ~ECHOKE & ~ECHOE & ~ECHO & ~ECHONL;
-	termios.c_iflag &= ~PARMRK & ~ISTRIP & ~INLCR & ~ICRNL & ~IXON; // 0x800?
-	/*
-	    cfsetispeed(&termios_p, 0x1002u);           // WTF? StackOverflow says it's B115200 but can't find out why
-    cfsetospeed(&termios_p, 0x1002u);
-    termios_p.c_lflag &= 0xFFFFFFE4;            // No ECHOKE/ECHOE/ECHO/ECHONL !!! Different among C libs !!!
-    termios_p.c_iflag &= 0xFFFFE2AF;            // No INPCK/INLCR/ICRNL/IXOFF/IXANY/1<<11
-    termios_p.c_cflag = (termios_p.c_cflag | 0x8B0) & 0x7FFFFEBF;// Add CREAD/1<<4,5,7, No CS6/1<<6/0x80000000 7-N-1
-    termios_p.c_oflag &= 0xFFFFFFF2;            // No OPOST/OXTABS/ONOEOT
-    termios_p.c_cc[5] = 0;                      // VINTR
-    termios_p.c_cc[6] = 0;
-    */
+	/* 115200 8-N-1 */
+	cfsetspeed(&termios, B115200);
+	termios.c_lflag &= ~ISIG & ~ICANON & ~ECHO & ~ECHOE;
+	termios.c_iflag &= ~INPCK & ~INLCR & ~ICRNL & ~IXON & ~IXANY & ~IXOFF;
+	termios.c_cflag |= CS8 | CREAD | CLOCAL;
+	termios.c_cflag &= ~CSTOPB & ~PARENB;
+	termios.c_oflag &= ~OPOST & ~ONLCR & ~OCRNL;
+	termios_p.c_cc[5] = VINTR;
+	termios_p.c_cc[6] = VINTR;
+
 	tcflush(g_serial_fd, TCIFLUSH);
 	if (tcsetattr(g_serial_fd, TCSANOW, &termios)) {
 		syslog(LOG_ERR, "could not set attrs for serial fd: %s\n", strerrno(errno));
