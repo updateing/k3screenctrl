@@ -9,10 +9,7 @@
 #include "common.h"
 #include "checksum.h"
 #include "serial_port.h"
-
-#define FRAME_HEADER 0x01
-#define FRAME_TRAILER 0x04
-#define FRAME_ESCAPE 0x10
+#include "mcu_proto.h"
 
 void (*g_frame_received_callback)(const unsigned char* frame, int len);
 
@@ -59,15 +56,6 @@ void frame_set_received_callback(void (*func)(const unsigned char*, int)) {
     g_frame_received_callback = func;
 }
 
-static void print_buf(const unsigned char* buf, int len) {
-    printf("RCVD %d bytes\n", len);
-
-    for (int i=0;i<len;i++) {
-        printf("0x%hhx ", buf[i]);
-    }
-    printf("\n");
-};
-
 static void frame_notify_received(const unsigned char* frame_buf, int len) {
     unsigned char frame[2048];
     unsigned char frame_pos = 0;
@@ -113,7 +101,7 @@ static void frame_notify_received(const unsigned char* frame_buf, int len) {
     }
 }
 
-void serial_recv_callback() {
+void frame_notify_serial_recv() {
     static unsigned char g_serial_recv_buf[2048];
     static int g_recv_buf_pos = 0;
 
