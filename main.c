@@ -32,7 +32,7 @@ static void print_buf(const unsigned char* buf, int len) {
 };
 
 int screen_initialize(int skip_reset) {
-	mask_memory_byte(0x1800c1c1, 0xf0, 0); /* Enable UART2 in DMU */
+    mask_memory_byte(0x1800c1c1, 0xf0, 0); /* Enable UART2 in DMU */
 
     if (!skip_reset) {
         if (gpio_export(SCREEN_BOOT_MODE_GPIO) == FAILURE ||
