@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/poll.h>
+#include <sys/ioctl.h>
 
 #include "common.h"
 #include "logging.h"
@@ -84,10 +85,10 @@ void serial_start_poll_loop() {
 	fds[0].fd = g_serial_fd;
 	fds[0].events = POLLIN;
 
-	while (true) {
+	while (1) {
 		int result = poll(fds, sizeof(fds) / sizeof(struct pollfd), SERIAL_POLL_INTERVAL_MS);
 		if (result < 0) {
-			syslog(LOG_ERR, "poll() failed: ", strerror(errno));
+			syslog(LOG_ERR, "poll() failed: %s", strerror(errno));
 			return;
 		} else if (result > 0) {
 			g_serial_pollin_callback();
