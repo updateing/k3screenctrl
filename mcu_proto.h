@@ -70,4 +70,9 @@ typedef enum _key_code {
     KEY_MIDDLE_LONG = 9
 } KEY_CODE;
 
+typedef struct _wan_info {
+    unsigned int is_connected;
+    unsigned int tx_bytes_per_sec;
+    unsigned int rx_bytes_per_sec;
+} WAN_INFO;
 #endif

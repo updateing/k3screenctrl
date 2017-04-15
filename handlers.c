@@ -3,6 +3,7 @@
 
 #include "mcu_proto.h"
 #include "handlers.h"
+#include "requests.h"
 
 static MCU_VERSION g_mcu_version;
 void handle_mcu_version(unsigned char* payload, int len) {
@@ -18,10 +19,15 @@ void handle_mcu_version(unsigned char* payload, int len) {
            g_mcu_version.minor_ver, g_mcu_version.patch_ver);
 }
 
-static int g_current_page = 3;
+static int g_current_page = 3, g_is_screen_on = 1;
 void handle_key_press(unsigned char* payload, int len) {
     if (len < 1) {
         syslog(LOG_WARNING, "Got malformed key press response. Length is %d\n", len);
+        return;
+    }
+    if (!g_is_screen_on) {
+        request_notify_status(STATUS_WAKEUP);
+        g_is_screen_on = 1;
         return;
     }
     switch (payload[0]) {
@@ -40,16 +46,19 @@ void handle_key_press(unsigned char* payload, int len) {
         case KEY_MIDDLE_SHORT:
             g_current_page = 3;
             printf("KEY_MIDDLE_SHORT\n");
+            request_update_wan(0, 233000000, 466000000);
             break;
         case KEY_MIDDLE_LONG:
-            // TODO turn off
-            printf("KEY_MIDDLE_LONG\n");
+            request_notify_status(STATUS_SLEEP);
+            g_is_screen_on = 0;
             return;
         case KEY_LEFT_LONG:
             // Implement something fun
+            request_update_wan(1, 233000000, 666000000);
             printf("KEY_LEFT_LONG\n");
             return;
         case KEY_RIGHT_LONG:
+            request_update_wan(1, 666000000, 999000000);
             printf("KEY_RIGHT_LONG\n");
             return;
         default:
