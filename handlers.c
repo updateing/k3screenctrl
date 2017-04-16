@@ -20,6 +20,7 @@ void handle_mcu_version(unsigned char* payload, int len) {
 }
 
 static int g_current_page = 3, g_is_screen_on = 1;
+static void send_page_data();
 void handle_key_press(unsigned char* payload, int len) {
     if (len < 1) {
         syslog(LOG_WARNING, "Got malformed key press response. Length is %d\n", len);
@@ -46,7 +47,6 @@ void handle_key_press(unsigned char* payload, int len) {
         case KEY_MIDDLE_SHORT:
             g_current_page = 3;
             printf("KEY_MIDDLE_SHORT\n");
-            request_update_wan(0, 233000000, 466000000);
             break;
         case KEY_MIDDLE_LONG:
             request_notify_status(STATUS_SLEEP);
@@ -66,8 +66,40 @@ void handle_key_press(unsigned char* payload, int len) {
             return;
     }
 
-    // send_page_data();
+    send_page_data();
+    request_switch_page(g_current_page);
     printf("current page = %d\n", g_current_page);
+}
+
+static void send_page_data() {
+    switch (g_current_page) {
+        case 1:
+            request_update_basic_info("K3-LEDE", "A-Any", "r3921+6", "23:33:66:66:99:99");
+            break;
+        case 2:
+            do {
+                PORT_INFO port_info;
+                port_info.eth_port1_conn = 1;
+                port_info.eth_port2_conn = 1;
+                port_info.eth_port3_conn = 1;
+                port_info.eth_wan_conn = 0;
+                port_info.usb_conn = 1;
+                request_update_ports(&port_info);
+            } while(0);
+            break;
+        case 3:
+            request_update_wan(1, 233000000, 666000000);
+            break;
+        case 4:
+            // request_update_wifi
+            break;
+        case 5:
+            // request_update_hosts
+            break;
+        default:
+            // ?
+            break;
+    }
 }
 
 RESPONSE_HANDLER g_response_handlers[] = {

@@ -21,7 +21,8 @@
 
 typedef enum _request_type {
     REQUEST_GET_MCU_VERSION = 1,
-    REQUEST_UPDATE_LAN_USB = 5,
+    REQUEST_SWITCH_PAGE = 4,
+    REQUEST_UPDATE_PORTS,
     REQUEST_UPDATE_WAN,
     REQUEST_UPDATE_WIFI,
     REQUEST_UPDATE_HOSTS,
@@ -70,9 +71,44 @@ typedef enum _key_code {
     KEY_MIDDLE_LONG = 9
 } KEY_CODE;
 
+/* REQUEST_UPDATE_PORTS */
+typedef struct _port_info {
+    unsigned char eth_port2_conn;
+    unsigned char eth_port1_conn;
+    unsigned char eth_port3_conn;
+    unsigned char PAD1;
+    unsigned char eth_wan_conn;
+    unsigned char usb_conn;
+    unsigned char PAD2[2];
+} PORT_INFO;
+
+/* REQUEST_UPDATE_WAN */
 typedef struct _wan_info {
     unsigned int is_connected;
     unsigned int tx_bytes_per_sec;
     unsigned int rx_bytes_per_sec;
 } WAN_INFO;
+
+struct _wifi_radio_info {
+    char ssid[64]; /* GBK */
+    char psk[64];
+    unsigned int enabled;
+};
+
+/* REQUEST_UPDATE_WIFI */
+typedef struct _wifi_info {
+    unsigned int bsd_role; /* From NVRAM */
+    struct _wifi_radio_info wl_24g_info;
+    struct _wifi_radio_info wl_5g_info;
+    struct _wifi_radio_info wl_visitor_info;
+} WIFI_INFO;
+
+/* REQUEST_UPDATE_BASIC_INFO */
+typedef struct _basic_info {
+    char product_name[8];
+    char hw_version[8];
+    char fw_version[24];
+    char mac_addr_base[18];
+} BASIC_INFO;
+
 #endif
