@@ -97,7 +97,7 @@ struct _wifi_radio_info {
 
 /* REQUEST_UPDATE_WIFI */
 typedef struct _wifi_info {
-    unsigned int bsd_role; /* From NVRAM */
+    unsigned int band_mix; /* This affects page 3 and page 4 */
     struct _wifi_radio_info wl_24g_info;
     struct _wifi_radio_info wl_5g_info;
     struct _wifi_radio_info wl_visitor_info;

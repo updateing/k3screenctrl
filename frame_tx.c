@@ -49,7 +49,9 @@ int frame_send(const unsigned char* data, int len) {
     /* Stage 4. Add trailer */
     buf[buf_pos++] = FRAME_TRAILER;
 
-    return serial_write(buf, buf_pos);
+    int ret = serial_write(buf, buf_pos);
+    free(buf);
+    return ret;
 }
 
 void frame_set_received_callback(void (*func)(const unsigned char*, int)) {

@@ -19,7 +19,10 @@ static int request_send_raw(REQUEST_TYPE type, const void* data, int len) {
     cmdbuf[0] = PAYLOAD_HEADER;
     cmdbuf[1] = type;
     memmove(cmdbuf + 2, data, len);
-    return frame_send(cmdbuf, len + 2);
+
+    int ret = frame_send(cmdbuf, len + 2);
+    free(cmdbuf);
+    return ret;
 }
 
 int request_switch_page(int page) {
@@ -58,6 +61,10 @@ int request_update_basic_info(const char* prod_name, const char* hw_ver, const c
 }
 
 /* Too many parameters. Fill the struct yourself */
+int request_update_wifi(WIFI_INFO *wifi_info) {
+    return request_send_raw(REQUEST_UPDATE_WIFI, wifi_info, sizeof(WIFI_INFO));
+}
+
 int request_update_ports(PORT_INFO *port_info) {
     return request_send_raw(REQUEST_UPDATE_PORTS, port_info, sizeof(PORT_INFO));
 }

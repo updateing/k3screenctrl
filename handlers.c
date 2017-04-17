@@ -1,12 +1,13 @@
 #include <syslog.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "mcu_proto.h"
 #include "handlers.h"
 #include "requests.h"
 
 static MCU_VERSION g_mcu_version;
-void handle_mcu_version(unsigned char* payload, int len) {
+void handle_mcu_version(const unsigned char* payload, int len) {
     if (len < 4) {
         syslog(LOG_WARNING, "Got malformed MCU version response. Length is %d\n", len);
         return;
@@ -21,7 +22,7 @@ void handle_mcu_version(unsigned char* payload, int len) {
 
 static int g_current_page = 3, g_is_screen_on = 1;
 static void send_page_data();
-void handle_key_press(unsigned char* payload, int len) {
+void handle_key_press(const unsigned char* payload, int len) {
     if (len < 1) {
         syslog(LOG_WARNING, "Got malformed key press response. Length is %d\n", len);
         return;
@@ -92,6 +93,23 @@ static void send_page_data() {
             break;
         case 4:
             // request_update_wifi
+            do {
+                WIFI_INFO wifi_info;
+                wifi_info.band_mix = 0;
+
+                strcpy(wifi_info.wl_24g_info.ssid, "LEDE-K3");
+                strcpy(wifi_info.wl_24g_info.psk, "12345678");
+                wifi_info.wl_24g_info.enabled = 1;
+
+                strcpy(wifi_info.wl_5g_info.ssid, "LEDE-K3-5G");
+                strcpy(wifi_info.wl_5g_info.psk, "12345678");
+                wifi_info.wl_5g_info.enabled = 1;
+
+                strcpy(wifi_info.wl_visitor_info.ssid, "LEDE-K3-Visitor");
+                strcpy(wifi_info.wl_visitor_info.psk, "12345678");
+                wifi_info.wl_visitor_info.enabled = 1;
+                request_update_wifi(&wifi_info);
+            } while (0);
             break;
         case 5:
             // request_update_hosts
