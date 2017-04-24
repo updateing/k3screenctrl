@@ -29,8 +29,8 @@ int request_switch_page(PAGE page) {
     return request_send_raw(REQUEST_SWITCH_PAGE, &page, 4);
 }
 
-int request_notify_status(STATUS_NOTIF status) {
-    return request_send_raw(REQUEST_NOTIFY_STATUS, &status, 4);
+int request_notify_event(EVENT event) {
+    return request_send_raw(REQUEST_NOTIFY_EVENT, &event, 4);
 }
 
 int request_update_wan(int is_connected, int tx_Bps, int rx_Bps) {
