@@ -76,14 +76,14 @@ typedef enum _key_code {
 
 /* REQUEST_SWITCH_PAGE */
 typedef enum _page {
-    PAGE_VERSION = 1,
+    PAGE_BASIC_INFO = 1,
     PAGE_PORTS,
     PAGE_WAN,
     PAGE_WIFI,
     PAGE_HOSTS
 } PAGE;
 
-#define PAGE_MIN PAGE_VERSION
+#define PAGE_MIN PAGE_BASIC_INFO
 #define PAGE_MAX PAGE_HOSTS
 
 /* REQUEST_UPDATE_PORTS */

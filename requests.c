@@ -65,14 +65,18 @@ int request_update_ports(PORT_INFO *port_info) {
     return request_send_raw(REQUEST_UPDATE_PORTS, port_info, sizeof(PORT_INFO));
 }
 
-int request_update_hosts_paged(struct _host_info_single hosts[], int maxlen, int total, int page) {
-    int ret = 0, len = maxlen > HOSTS_PER_PAGE ? HOSTS_PER_PAGE : maxlen;
+int request_update_hosts_paged(struct _host_info_single hosts[], int len, int start) {
+    int ret = 0, copylen;
     HOST_INFO info;
     bzero(&info, sizeof(HOST_INFO));
-    info.total_hosts = total;
-    info.current_page_index = page;
-    for (int i = 0; i < len; i++) {
-        memmove(&info.host_info[i], &hosts[i], sizeof(struct _host_info_single));
+
+    copylen = len - start;
+    copylen = copylen > HOSTS_PER_PAGE ? HOSTS_PER_PAGE : copylen;
+
+    info.total_hosts = len;
+    info.current_page_index = start / HOSTS_PER_PAGE;
+    for (int i = 0; i < copylen; i++) {
+        memmove(&info.host_info[i], &hosts[start + i], sizeof(struct _host_info_single));
     }
 
     ret |= request_send_raw(REQUEST_UPDATE_HOSTS_PAGED, &info, sizeof(HOST_INFO));

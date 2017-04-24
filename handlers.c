@@ -6,6 +6,7 @@
 #include "handlers.h"
 #include "requests.h"
 #include "actions.h"
+#include "common.h"
 
 static MCU_VERSION g_mcu_version;
 void handle_mcu_version(const unsigned char* payload, int len) {
@@ -21,7 +22,7 @@ void handle_mcu_version(const unsigned char* payload, int len) {
            g_mcu_version.minor_ver, g_mcu_version.patch_ver);
 }
 
-static int g_current_page = 3, g_host_page = 0, g_is_screen_on = 1;
+static int g_current_page = 3, g_is_screen_on = 1;
 void handle_key_press(const unsigned char* payload, int len) {
     if (len < 1) {
         syslog(LOG_WARNING, "Got malformed key press response. Length is %d\n", len);
@@ -35,19 +36,27 @@ void handle_key_press(const unsigned char* payload, int len) {
     switch (payload[0]) {
         case KEY_LEFT_SHORT:
             if (g_current_page == PAGE_HOSTS) {
-                g_host_page--;
-            }
-            if (g_current_page > PAGE_MIN) {
+                if (select_prev_host_page() == FAILURE) {
+                    g_current_page--;
+                }
+            } else {
                 g_current_page--;
+            }
+            if (g_current_page < PAGE_MIN) {
+                g_current_page = PAGE_MIN;
             }
             printf("KEY_LEFT_SHORT\n");
             break;
         case KEY_RIGHT_SHORT:
             if (g_current_page == PAGE_HOSTS) {
-                g_host_page++;
-            }
-            if (g_current_page < PAGE_MAX) {
+                if (select_next_host_page() == FAILURE) {
+                    g_current_page++;
+                }
+            } else {
                 g_current_page++;
+            }
+            if (g_current_page > PAGE_MAX) {
+                g_current_page = PAGE_MAX;
             }
             printf("KEY_RIGHT_SHORT\n");
             break;
