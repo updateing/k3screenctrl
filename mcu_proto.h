@@ -6,11 +6,14 @@
  *
  * FRAME_HEADER | PAYLOAD_HEADER | PAYLOAD_TYPE | PAYLOAD | FRAME_TRAILER
  *
- * PAYLOAD_TYPE can be one of the item in REQUEST_TYPE (Tx) or RESPONSE_TYPE (Rx)
+ * PAYLOAD_TYPE can be one of the item in REQUEST_TYPE (Tx) or RESPONSE_TYPE
+(Rx)
  * 0x01, 0x04 and 0x10 in PAYLOAD_* needs to be escaped by FRAME_ESCAPE.
  *
- * Actually there are frames with 0x01 and 0x02 as PAYLOAD_HEADER. Maybe this kind of
- * frames is only used when communicating with bootloader. We do not need them here
+ * Actually there are frames with 0x01 and 0x02 as PAYLOAD_HEADER. Maybe this
+kind of
+ * frames is only used when communicating with bootloader. We do not need them
+here
  * since we are not upgrading the bootloader.
  */
 
@@ -25,7 +28,7 @@ typedef enum _request_type {
     REQUEST_UPDATE_PORTS,
     REQUEST_UPDATE_WAN,
     REQUEST_UPDATE_WIFI,
-    REQUEST_UPDATE_HOSTS,
+    REQUEST_UPDATE_HOSTS_PAGED,
     REQUEST_UPDATE_BASIC_INFO,
     REQUEST_NOTIFY_STATUS
 } REQUEST_TYPE;
@@ -71,6 +74,18 @@ typedef enum _key_code {
     KEY_MIDDLE_LONG = 9
 } KEY_CODE;
 
+/* REQUEST_SWITCH_PAGE */
+typedef enum _page {
+    PAGE_VERSION = 1,
+    PAGE_PORTS,
+    PAGE_WAN,
+    PAGE_WIFI,
+    PAGE_HOSTS
+} PAGE;
+
+#define PAGE_MIN PAGE_VERSION
+#define PAGE_MAX PAGE_HOSTS
+
 /* REQUEST_UPDATE_PORTS */
 typedef struct _port_info {
     unsigned char eth_port2_conn;
@@ -92,7 +107,9 @@ typedef struct _wan_info {
 struct _wifi_radio_info {
     char ssid[64]; /* GBK */
     char psk[64];
-    unsigned int enabled;
+    unsigned char enabled;
+    unsigned char clients_count;
+    unsigned char PAD[2];
 };
 
 /* REQUEST_UPDATE_WIFI */
@@ -102,6 +119,23 @@ typedef struct _wifi_info {
     struct _wifi_radio_info wl_5g_info;
     struct _wifi_radio_info wl_visitor_info;
 } WIFI_INFO;
+
+/* REQUEST_UPDATE_HOSTS_PAGED */
+struct _host_info_single {
+    unsigned int upload_Bps;
+    unsigned int download_Bps;
+    char hostname[36];
+    unsigned int logo;
+};
+
+#define HOSTS_PER_PAGE 5
+
+typedef struct _host_info {
+    unsigned char total_hosts;
+    unsigned char current_page_index;
+    unsigned char PAD[2];
+    struct _host_info_single host_info[HOSTS_PER_PAGE];
+} HOST_INFO;
 
 /* REQUEST_UPDATE_BASIC_INFO */
 typedef struct _basic_info {

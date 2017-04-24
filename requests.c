@@ -25,11 +25,7 @@ static int request_send_raw(REQUEST_TYPE type, const void* data, int len) {
     return ret;
 }
 
-int request_switch_page(int page) {
-    if (page < 1 || page > 5) {
-        syslog(LOG_WARNING, "Requested page %d does not exist\n", page);
-        return FAILURE;
-    }
+int request_switch_page(PAGE page) {
     return request_send_raw(REQUEST_SWITCH_PAGE, &page, 4);
 }
 
@@ -69,3 +65,16 @@ int request_update_ports(PORT_INFO *port_info) {
     return request_send_raw(REQUEST_UPDATE_PORTS, port_info, sizeof(PORT_INFO));
 }
 
+int request_update_hosts_paged(struct _host_info_single hosts[], int maxlen, int total, int page) {
+    int ret = 0, len = maxlen > HOSTS_PER_PAGE ? HOSTS_PER_PAGE : maxlen;
+    HOST_INFO info;
+    bzero(&info, sizeof(HOST_INFO));
+    info.total_hosts = total;
+    info.current_page_index = page;
+    for (int i = 0; i < len; i++) {
+        memmove(&info.host_info[i], &hosts[i], sizeof(struct _host_info_single));
+    }
+
+    ret |= request_send_raw(REQUEST_UPDATE_HOSTS_PAGED, &info, sizeof(HOST_INFO));
+    return ret;
+}

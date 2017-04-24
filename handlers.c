@@ -20,7 +20,7 @@ void handle_mcu_version(const unsigned char* payload, int len) {
            g_mcu_version.minor_ver, g_mcu_version.patch_ver);
 }
 
-static int g_current_page = 3, g_is_screen_on = 1;
+static int g_current_page = 3, g_host_page = 0, g_is_screen_on = 1;
 static void send_page_data();
 void handle_key_press(const unsigned char* payload, int len) {
     if (len < 1) {
@@ -34,13 +34,19 @@ void handle_key_press(const unsigned char* payload, int len) {
     }
     switch (payload[0]) {
         case KEY_LEFT_SHORT:
-            if (g_current_page > 1) {
+            if (g_current_page == PAGE_HOSTS) {
+                g_host_page--;
+            }
+            if (g_current_page > PAGE_MIN) {
                 g_current_page--;
             }
             printf("KEY_LEFT_SHORT\n");
             break;
         case KEY_RIGHT_SHORT:
-            if (g_current_page < 5) {
+            if (g_current_page == PAGE_HOSTS) {
+                g_host_page++;
+            }
+            if (g_current_page < PAGE_MAX) {
                 g_current_page++;
             }
             printf("KEY_RIGHT_SHORT\n");
@@ -100,19 +106,32 @@ static void send_page_data() {
                 strcpy(wifi_info.wl_24g_info.ssid, "LEDE-K3");
                 strcpy(wifi_info.wl_24g_info.psk, "12345678");
                 wifi_info.wl_24g_info.enabled = 1;
+                wifi_info.wl_24g_info.clients_count = 11;
 
                 strcpy(wifi_info.wl_5g_info.ssid, "LEDE-K3-5G");
                 strcpy(wifi_info.wl_5g_info.psk, "12345678");
                 wifi_info.wl_5g_info.enabled = 1;
+                wifi_info.wl_5g_info.clients_count = 87;
 
                 strcpy(wifi_info.wl_visitor_info.ssid, "LEDE-K3-Visitor");
                 strcpy(wifi_info.wl_visitor_info.psk, "12345678");
                 wifi_info.wl_visitor_info.enabled = 1;
+                wifi_info.wl_visitor_info.clients_count = 20;
                 request_update_wifi(&wifi_info);
             } while (0);
             break;
         case 5:
             // request_update_hosts
+            do {
+                struct _host_info_single hosts[] = {
+                    {23300, 66600, "H", 0},
+                    {66600, 99900, "H2", 1},
+                    {66600, 99900, "H3", 2},
+                    {23300, 66600, "H4", 3},
+                    {66600, 99900, "H5", 4},
+                };
+                request_update_hosts_paged(hosts, sizeof(hosts) / sizeof(hosts[0]), 0);
+            } while (0);
             break;
         default:
             // ?
