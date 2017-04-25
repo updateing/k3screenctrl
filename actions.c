@@ -62,7 +62,7 @@ int select_prev_host_page() {
 }
 
 int select_next_host_page() {
-    if (get_hosts_count() - g_host_page * HOSTS_PER_PAGE <= HOSTS_PER_PAGE) {
+    if (get_hosts_count() - g_host_page * (HOSTS_PER_PAGE + 1) <= 0) {
         return FAILURE;
     }
 

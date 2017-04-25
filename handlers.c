@@ -35,28 +35,18 @@ void handle_key_press(const unsigned char* payload, int len) {
     }
     switch (payload[0]) {
         case KEY_LEFT_SHORT:
-            if (g_current_page == PAGE_HOSTS) {
-                if (select_prev_host_page() == FAILURE) {
+            if (g_current_page != PAGE_HOSTS || select_prev_host_page() == FAILURE) {
+                if (g_current_page > PAGE_MIN) {
                     g_current_page--;
                 }
-            } else {
-                g_current_page--;
-            }
-            if (g_current_page < PAGE_MIN) {
-                g_current_page = PAGE_MIN;
             }
             printf("KEY_LEFT_SHORT\n");
             break;
         case KEY_RIGHT_SHORT:
-            if (g_current_page == PAGE_HOSTS) {
-                if (select_next_host_page() == FAILURE) {
+            if (g_current_page != PAGE_HOSTS || select_next_host_page() == FAILURE) {
+                if (g_current_page < PAGE_MAX) {
                     g_current_page++;
                 }
-            } else {
-                g_current_page++;
-            }
-            if (g_current_page > PAGE_MAX) {
-                g_current_page = PAGE_MAX;
             }
             printf("KEY_RIGHT_SHORT\n");
             break;
