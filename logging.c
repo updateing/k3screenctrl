@@ -8,6 +8,4 @@ void syslog_setup(int print_stderr) {
     openlog(LOG_IDENT, log_options, LOG_USER);
 }
 
-void syslog_stop() {
-    closelog();
-}
+void syslog_stop() { closelog(); }

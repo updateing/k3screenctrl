@@ -1,16 +1,17 @@
-#include <stdio.h>
 #include <errno.h>
+#include <stdio.h>
 
-#include "gpio.h"
-#include "file_util.h"
 #include "common.h"
+#include "file_util.h"
+#include "gpio.h"
 
 int gpio_export(int gpio) {
     char path_buf[50];
 
     sprintf(path_buf, "/sys/class/gpio/gpio%d", gpio);
 
-    return path_exists(path_buf) == SUCCESS || write_file_int("/sys/class/gpio/export", gpio);
+    return path_exists(path_buf) == SUCCESS ||
+           write_file_int("/sys/class/gpio/export", gpio);
 }
 
 int gpio_unexport(int gpio) {
@@ -18,12 +19,13 @@ int gpio_unexport(int gpio) {
 
     sprintf(path_buf, "/sys/class/gpio/gpio%d", gpio);
 
-    return path_exists(path_buf) == FAILURE || write_file_int("/sys/class/gpio/unexport", gpio);
+    return path_exists(path_buf) == FAILURE ||
+           write_file_int("/sys/class/gpio/unexport", gpio);
 }
 
 int gpio_set_direction(int gpio, GPIO_DIRECTION dir) {
     char path_buf[50];
-    char* dir_str;
+    char *dir_str;
 
     sprintf(path_buf, "/sys/class/gpio/gpio%d/direction", gpio);
 
@@ -46,4 +48,3 @@ int gpio_set_value(int gpio, int value) {
 
     return write_file_int(path_buf, value);
 }
-

@@ -1,11 +1,11 @@
-#include <termios.h>
-#include <fcntl.h>
-#include <string.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include <fcntl.h>
 #include <poll.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/ioctl.h>
+#include <termios.h>
+#include <unistd.h>
 
 #include "common.h"
 #include "logging.h"
@@ -15,7 +15,7 @@ int g_serial_fd = -1;
 int g_poll_loop_break_flag = 0;
 void (*g_serial_pollin_callback)();
 
-int serial_setup(const char* dev_path) {
+int serial_setup(const char *dev_path) {
     struct termios serial_termios;
 
     g_serial_fd = open(dev_path, O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -25,7 +25,8 @@ int serial_setup(const char* dev_path) {
     }
 
     if (tcgetattr(g_serial_fd, &serial_termios)) {
-        syslog(LOG_ERR, "could not get attrs from serial fd: %s\n", strerror(errno));
+        syslog(LOG_ERR, "could not get attrs from serial fd: %s\n",
+               strerror(errno));
         serial_close();
         return FAILURE;
     }
@@ -52,7 +53,8 @@ int serial_setup(const char* dev_path) {
 
     tcflush(g_serial_fd, TCIFLUSH);
     if (tcsetattr(g_serial_fd, TCSANOW, &serial_termios)) {
-        syslog(LOG_ERR, "could not set attrs for serial fd: %s\n", strerror(errno));
+        syslog(LOG_ERR, "could not set attrs for serial fd: %s\n",
+               strerror(errno));
         serial_close();
         return FAILURE;
     }
@@ -60,15 +62,13 @@ int serial_setup(const char* dev_path) {
     return SUCCESS;
 }
 
-void serial_close() {
-    close(g_serial_fd);
-}
+void serial_close() { close(g_serial_fd); }
 
-int serial_write(const unsigned char* data, int len) {
+int serial_write(const unsigned char *data, int len) {
     return write(g_serial_fd, data, len);
 }
 
-int serial_read(unsigned char* buf, int maxlen) {
+int serial_read(unsigned char *buf, int maxlen) {
     return read(g_serial_fd, buf, maxlen);
 }
 
@@ -76,9 +76,7 @@ void serial_set_pollin_callback(void (*callback)()) {
     g_serial_pollin_callback = callback;
 }
 
-void serial_break_poll_loop() {
-    g_poll_loop_break_flag = 1;
-}
+void serial_break_poll_loop() { g_poll_loop_break_flag = 1; }
 
 void serial_start_poll_loop() {
     struct pollfd fds[1];
@@ -86,7 +84,8 @@ void serial_start_poll_loop() {
     fds[0].events = POLLIN;
 
     while (1) {
-        int result = poll(fds, sizeof(fds) / sizeof(struct pollfd), SERIAL_POLL_INTERVAL_MS);
+        int result = poll(fds, sizeof(fds) / sizeof(struct pollfd),
+                          SERIAL_POLL_INTERVAL_MS);
         if (result < 0) {
             syslog(LOG_ERR, "poll() failed: %s", strerror(errno));
             return;

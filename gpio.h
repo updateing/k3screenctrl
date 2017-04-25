@@ -1,10 +1,7 @@
 #ifndef _GPIO_H
 #define _GPIO_H
 
-typedef enum _gpio_dir {
-    GPIO_IN,
-    GPIO_OUT
-} GPIO_DIRECTION;
+typedef enum _gpio_dir { GPIO_IN, GPIO_OUT } GPIO_DIRECTION;
 
 int gpio_export(int gpio);
 int gpio_unexport(int gpio);

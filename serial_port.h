@@ -8,7 +8,7 @@
  *
  * Returns: SUCCESS, FAILURE
  */
-int serial_setup(const char* dev_path);
+int serial_setup(const char *dev_path);
 
 /*
  * Close the port
@@ -20,8 +20,8 @@ void serial_close();
  *
  * Returns: how many bytes are actually written / read
  */
-int serial_write(const unsigned char* data, int len);
-int serial_read(unsigned char* buf, int maxlen);
+int serial_write(const unsigned char *data, int len);
+int serial_read(unsigned char *buf, int maxlen);
 
 /*
  * Callback when there is new data available to read.
