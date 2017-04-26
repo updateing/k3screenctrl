@@ -80,17 +80,17 @@ void send_page_data(PAGE page) {
             strcpy(wifi_info.wl_24g_info.ssid, "LEDE-K3");
             strcpy(wifi_info.wl_24g_info.psk, "12345678");
             wifi_info.wl_24g_info.enabled = 1;
-            wifi_info.wl_24g_info.clients_count = 11;
+            wifi_info.wl_24g_info.sta_count = 11;
 
             strcpy(wifi_info.wl_5g_info.ssid, "LEDE-K3-5G");
             strcpy(wifi_info.wl_5g_info.psk, "12345678");
             wifi_info.wl_5g_info.enabled = 1;
-            wifi_info.wl_5g_info.clients_count = 87;
+            wifi_info.wl_5g_info.sta_count = 87;
 
             strcpy(wifi_info.wl_visitor_info.ssid, "LEDE-K3-Visitor");
             strcpy(wifi_info.wl_visitor_info.psk, "12345678");
             wifi_info.wl_visitor_info.enabled = 1;
-            wifi_info.wl_visitor_info.clients_count = 20;
+            wifi_info.wl_visitor_info.sta_count = 20;
             request_update_wifi(&wifi_info);
         } while (0);
         break;

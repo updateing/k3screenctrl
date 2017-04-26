@@ -108,7 +108,7 @@ struct _wifi_radio_info {
     char ssid[64]; /* GBK */
     char psk[64];
     unsigned char enabled;
-    unsigned char clients_count;
+    unsigned char sta_count;
     unsigned char PAD[2];
 };
 
