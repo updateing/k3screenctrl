@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
 
@@ -15,15 +16,16 @@ char *script_get_output(const char *script) {
     }
 
     ret = (char *)malloc(SCRIPT_OUTPUT_BUFFER_SIZE);
-    if (buf < 0) {
+    if (ret < 0) {
         syslog(LOG_ERR, "could not allocate memory for command output: %s\n",
                strerror(errno));
         goto close_exit;
     }
 
-    if (fread(buf, SCRIPT_OUTPUT_BUFFER_SIZE, 1, fp) < 0) {
+    if (fread(ret, SCRIPT_OUTPUT_BUFFER_SIZE, 1, fp) == 0) {
         syslog(LOG_ERR, "could not read from stream: %s\n", strerror(errno));
-        goto close_exit;
+        free(ret);
+        ret = NULL;
     }
 
 close_exit:

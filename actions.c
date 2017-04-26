@@ -99,7 +99,7 @@ void send_page_data(PAGE page) {
                                    g_host_page * HOSTS_PER_PAGE);
         break;
     default:
-        syslog(LOG_WARNING, "unknown page requested: %hhd\n", page);
+        syslog(LOG_WARNING, "unknown page requested: %d\n", page);
         break;
     }
 }

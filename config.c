@@ -1,4 +1,7 @@
 #include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "config.h"
 
@@ -89,4 +92,4 @@ void config_free() {
     free(g_config.basic_info_script);
 }
 
-CONFIG *config_get() { return g_config; }
+CONFIG *config_get() { return &g_config; }

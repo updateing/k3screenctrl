@@ -1,4 +1,5 @@
 #include "common.h"
+#include "config.h"
 #include "frame_tx.h"
 #include "frame_tx.h"
 #include "gpio.h"
@@ -10,6 +11,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <syslog.h>
 
 /*
