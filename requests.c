@@ -27,6 +27,10 @@ static int request_send_raw(REQUEST_TYPE type, const void *data, int len) {
     return ret;
 }
 
+int request_mcu_version() {
+    return request_send_raw(REQUEST_GET_MCU_VERSION, NULL, 0);
+}
+
 int request_switch_page(PAGE page) {
     return request_send_raw(REQUEST_SWITCH_PAGE, &page, 4);
 }

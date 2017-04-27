@@ -81,7 +81,7 @@ static int screen_initialize(int skip_reset) {
         return FAILURE;
     }
 
-    return SUCCESS;
+    return request_mcu_version(); // At least we should be able to send
 }
 
 void cleanup() {
@@ -97,8 +97,9 @@ int main(int argc, char *argv[]) {
 
     syslog_setup(CFG->foreground);
 
+    update_all_info();
+
     if (CFG->test_mode) {
-        update_all_info();
         print_all_info();
         return 0;
     }
@@ -107,6 +108,7 @@ int main(int argc, char *argv[]) {
         return -EIO;
     }
 
+    send_initial_data();
     serial_set_pollin_callback(frame_notify_serial_recv);
     frame_set_received_callback(frame_handler);
     serial_start_poll_loop();

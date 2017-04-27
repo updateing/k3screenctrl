@@ -5,9 +5,9 @@
 
 #include "common.h"
 #include "config.h"
+#include "debug.h"
 #include "mcu_proto.h"
 #include "scripts.h"
-#include "debug.h"
 
 enum _token_type {
     TOKEN_STRING_NEW,       /* Duplicate a new string and write its pointer to
@@ -115,12 +115,12 @@ static int update_storage_from_script(const char *script,
      * be malformatted and the results are not reliable.
      */
     const char *stopped_at = tokenize_and_store(out, '\n', stores, store_len);
-    free((void*)out);
+    free((void *)out);
 
     return *stopped_at == 0 ? SUCCESS : FAILURE;
 }
 
-static BASIC_INFO g_basic_info;
+BASIC_INFO g_basic_info;
 int update_basic_info() {
     static const struct _token_store stores[] = {
         TOKEN_STRING_OVERWRITE_STORE(g_basic_info.product_name),
@@ -132,7 +132,7 @@ int update_basic_info() {
                                       sizeof(stores) / sizeof(stores[0]));
 }
 
-static PORT_INFO g_port_info;
+PORT_INFO g_port_info;
 int update_port_info() {
     static const struct _token_store stores[] = {
         TOKEN_BYTE_STORE(g_port_info.eth_port1_conn),
@@ -145,7 +145,7 @@ int update_port_info() {
                                       sizeof(stores) / sizeof(stores[0]));
 }
 
-static WAN_INFO g_wan_info;
+WAN_INFO g_wan_info;
 int update_wan_info() {
     static const struct _token_store stores[] = {
         TOKEN_UINT_STORE(g_wan_info.is_connected),
@@ -156,7 +156,7 @@ int update_wan_info() {
                                       sizeof(stores) / sizeof(stores[0]));
 }
 
-static WIFI_INFO g_wifi_info;
+WIFI_INFO g_wifi_info;
 int update_wifi_info() {
     static const struct _token_store stores[] = {
         TOKEN_UINT_STORE(g_wifi_info.band_mix),
@@ -180,8 +180,8 @@ int update_wifi_info() {
                                       sizeof(stores) / sizeof(stores[0]));
 }
 
-static struct _host_info_single *g_host_info_array;
-static unsigned int g_host_info_elements;
+struct _host_info_single *g_host_info_array;
+unsigned int g_host_info_elements;
 int update_host_info() {
     int ret = FAILURE;
     char *out = script_get_output(CFG->host_script);
