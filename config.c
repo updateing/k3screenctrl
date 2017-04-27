@@ -14,6 +14,10 @@ static void config_show_help() {
         "\t-h, --help\t\t\tShow this help\n"
         "\t-r, --skip-reset\t\tDo not reset screen on startup (will reset "
         "by default)\n"
+        "\t-f, --foreground\t\tRun in foreground and print logs to stderr "
+        "as well\n"
+        "\t-t, --test\t\t\tTest the scripts: collect info and print them, then"
+        "exit\n"
         "\t-s, --host-script <PATH>\tUse this script to gather hosts "
         "info\n"
         "\t-w, --wifi-script <PATH>\tUse this script to gather WiFi "
@@ -31,14 +35,16 @@ static void config_show_help() {
 void config_parse_cmdline(int argc, char *argv[]) {
     static const struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
+        {"foreground", no_argument, NULL, 'f'},
         {"skip-reset", no_argument, NULL, 'r'},
+        {"test", no_argument, NULL, 't'},
         {"host-script", required_argument, NULL, 's'},
         {"wifi-script", required_argument, NULL, 'w'},
         {"port-script", required_argument, NULL, 'p'},
         {"wan-script", required_argument, NULL, 'n'},
         {"basic-info-script", required_argument, NULL, 'i'},
         {0, 0, 0, 0}};
-    static const char *short_opts = "hrs:w:p:n:i:";
+    static const char *short_opts = "hfrts:w:p:n:i:";
 
     int opt_index;
     char result;
@@ -48,8 +54,14 @@ void config_parse_cmdline(int argc, char *argv[]) {
         case 'h':
             config_show_help();
             break;
+        case 'f':
+            g_config.foreground = 1;
+            break;
         case 'r':
             g_config.skip_reset = 1;
+            break;
+        case 't':
+            g_config.test_mode = 1;
             break;
         case 's':
             free(g_config.host_script);
@@ -77,6 +89,8 @@ void config_parse_cmdline(int argc, char *argv[]) {
 
 void config_load_defaults() {
     g_config.skip_reset = DEFAULT_SKIP_RESET;
+    g_config.foreground = DEFAULT_FOREGROUND;
+    g_config.test_mode = DEFAULT_TEST_MODE;
     g_config.host_script = strdup(DEFAULT_HOST_SCRIPT);
     g_config.wifi_script = strdup(DEFAULT_WIFI_SCRIPT);
     g_config.port_script = strdup(DEFAULT_PORT_SCRIPT);

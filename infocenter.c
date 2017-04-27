@@ -7,6 +7,7 @@
 #include "config.h"
 #include "mcu_proto.h"
 #include "scripts.h"
+#include "debug.h"
 
 enum _token_type {
     TOKEN_STRING_NEW,       /* Duplicate a new string and write its pointer to
@@ -44,6 +45,28 @@ struct _token_store {
 #define TOKEN_BYTE_STORE(x)                                                    \
     { .byte_storage = &(x), .type = TOKEN_BYTE, .storage_len = sizeof((x)), }
 
+/* Will free(token) if needed */
+static void token_store(const struct _token_store *store_info, char *token) {
+    switch (store_info->type) {
+    case TOKEN_STRING_NEW:
+        *store_info->str_new_storage = token;
+        break;
+    case TOKEN_STRING_OVERWRITE:
+        strncpy(store_info->str_overwrite_storage, token,
+                store_info->storage_len);
+        free(token);
+        break;
+    case TOKEN_UINT:
+        *store_info->uint_storage = atoi(token);
+        free(token);
+        break;
+    case TOKEN_BYTE:
+        *store_info->byte_storage = atoi(token);
+        free(token);
+        break;
+    }
+}
+
 /* Returns pointer to where it left */
 static const char *tokenize_and_store(const char *str, const char delim,
                                       const struct _token_store *stores,
@@ -54,24 +77,7 @@ static const char *tokenize_and_store(const char *str, const char delim,
 
     while (token_pos < store_len && (next_token = strchr(last_start, delim))) {
         char *curr_token = strndup(last_start, next_token - last_start);
-        switch (stores[token_pos].type) {
-        case TOKEN_STRING_NEW:
-            *stores[token_pos].str_new_storage = curr_token;
-            break;
-        case TOKEN_STRING_OVERWRITE:
-            strncpy(stores[token_pos].str_overwrite_storage, curr_token,
-                    stores[token_pos].storage_len);
-            free(curr_token);
-            break;
-        case TOKEN_UINT:
-            *stores[token_pos].uint_storage = atoi(curr_token);
-            free(curr_token);
-            break;
-        case TOKEN_BYTE:
-            *stores[token_pos].byte_storage = atoi(curr_token);
-            free(curr_token);
-            break;
-        }
+        token_store(&stores[token_pos], curr_token);
         last_start = next_token + 1;
         token_pos++;
     }
@@ -83,24 +89,7 @@ static const char *tokenize_and_store(const char *str, const char delim,
          * processed. */
         char *curr_token = strdup(last_start);
         last_start += strlen(curr_token);
-        switch (stores[token_pos].type) {
-        case TOKEN_STRING_NEW:
-            *stores[token_pos].str_new_storage = curr_token;
-            break;
-        case TOKEN_STRING_OVERWRITE:
-            strncpy(stores[token_pos].str_overwrite_storage, curr_token,
-                    stores[token_pos].storage_len);
-            free(curr_token);
-            break;
-        case TOKEN_UINT:
-            *stores[token_pos].uint_storage = atoi(curr_token);
-            free(curr_token);
-            break;
-        case TOKEN_BYTE:
-            *stores[token_pos].byte_storage = atoi(curr_token);
-            free(curr_token);
-            break;
-        }
+        token_store(&stores[token_pos], curr_token);
         token_pos++;
     }
 
@@ -125,8 +114,10 @@ static int update_storage_from_script(const char *script,
      * If it did not (there is something left in the output), the output may
      * be malformatted and the results are not reliable.
      */
-    return *tokenize_and_store(out, '\n', stores, store_len) == 0 ? SUCCESS
-                                                                  : FAILURE;
+    const char *stopped_at = tokenize_and_store(out, '\n', stores, store_len);
+    free((void*)out);
+
+    return *stopped_at == 0 ? SUCCESS : FAILURE;
 }
 
 static BASIC_INFO g_basic_info;
@@ -224,16 +215,16 @@ int update_host_info() {
 
     /* The storage pointer is just placeholders. We will change later */
     struct _token_store host_info_tokens[] = {
+        TOKEN_STRING_OVERWRITE_STORE(g_host_info_array[0].hostname),
         TOKEN_UINT_STORE(g_host_info_array[0].download_Bps),
         TOKEN_UINT_STORE(g_host_info_array[0].upload_Bps),
-        TOKEN_STRING_OVERWRITE_STORE(g_host_info_array[0].hostname),
         TOKEN_UINT_STORE(g_host_info_array[0].logo),
     };
     for (int i = 0; i < g_host_info_elements; i++) {
-        host_info_tokens[0].uint_storage = &g_host_info_array[i].download_Bps;
-        host_info_tokens[1].uint_storage = &g_host_info_array[i].upload_Bps;
-        host_info_tokens[2].str_overwrite_storage =
+        host_info_tokens[0].str_overwrite_storage =
             g_host_info_array[i].hostname;
+        host_info_tokens[1].uint_storage = &g_host_info_array[i].download_Bps;
+        host_info_tokens[2].uint_storage = &g_host_info_array[i].upload_Bps;
         host_info_tokens[3].uint_storage = &g_host_info_array[i].logo;
 
         curr_pos = tokenize_and_store(curr_pos, '\n', host_info_tokens,
@@ -257,7 +248,7 @@ final_exit:
     return ret;
 }
 
-int update_all() {
+int update_all_info() {
     int ret = 0;
     ret |= update_basic_info();
     ret |= update_port_info();
@@ -265,4 +256,12 @@ int update_all() {
     ret |= update_wifi_info();
     ret |= update_host_info();
     return ret;
+}
+
+void print_all_info() {
+    print_basic_info(&g_basic_info);
+    print_wifi_info(&g_wifi_info);
+    print_wan_info(&g_wan_info);
+    print_port_info(&g_port_info);
+    print_host_info(g_host_info_array, g_host_info_elements);
 }

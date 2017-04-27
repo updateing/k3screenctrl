@@ -6,4 +6,5 @@
 #define LOG_IDENT "K3Screen"
 
 void syslog_setup();
+void syslog_stop();
 #endif

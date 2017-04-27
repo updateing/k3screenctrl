@@ -124,6 +124,18 @@ typedef struct _config {
      */
     int skip_reset;
 #define DEFAULT_SKIP_RESET 0
+
+    /**
+     * Keep in foreground. And log to stderr as well.
+     */
+    int foreground;
+#define DEFAULT_FOREGROUND 0
+
+    /**
+     * Script test mode. Collect data from scripts and print them, them exit
+     */
+    int test_mode;
+#define DEFAULT_TEST_MODE 0
 } CONFIG;
 
 void config_parse_cmdline(int argc, char *argv[]);

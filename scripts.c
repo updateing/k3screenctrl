@@ -22,7 +22,7 @@ char *script_get_output(const char *script) {
         goto close_exit;
     }
 
-    if (fread(ret, SCRIPT_OUTPUT_BUFFER_SIZE, 1, fp) == 0) {
+    if (fread(ret, 1, SCRIPT_OUTPUT_BUFFER_SIZE, fp) == 0) {
         syslog(LOG_ERR, "could not read from stream: %s\n", strerror(errno));
         free(ret);
         ret = NULL;

@@ -6,6 +6,8 @@ int update_port_info();
 int update_wan_info();
 int update_wifi_info();
 int update_host_info();
-int update_all();
+
+int update_all_info();
+int print_all_info();
 
 #endif

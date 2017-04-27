@@ -1,10 +1,10 @@
 #include "common.h"
 #include "config.h"
 #include "frame_tx.h"
-#include "frame_tx.h"
 #include "gpio.h"
 #include "handlers.h"
 #include "infocenter.h"
+#include "logging.h"
 #include "mcu_proto.h"
 #include "mem_util.h"
 #include "serial_port.h"
@@ -84,14 +84,24 @@ static int screen_initialize(int skip_reset) {
     return SUCCESS;
 }
 
-void cleanup() { config_free(); }
+void cleanup() {
+    config_free();
+    syslog_stop();
+}
 
 int main(int argc, char *argv[]) {
-#if 0
     atexit(cleanup);
 
     config_load_defaults();
     config_parse_cmdline(argc, argv);
+
+    syslog_setup(CFG->foreground);
+
+    if (CFG->test_mode) {
+        update_all_info();
+        print_all_info();
+        return 0;
+    }
 
     if (screen_initialize(CFG->skip_reset) == FAILURE) {
         return -EIO;
@@ -100,10 +110,4 @@ int main(int argc, char *argv[]) {
     serial_set_pollin_callback(frame_notify_serial_recv);
     frame_set_received_callback(frame_handler);
     serial_start_poll_loop();
-#else
-    config_load_defaults();
-    config_parse_cmdline(argc, argv);
-
-    update_all();
-#endif
 }
