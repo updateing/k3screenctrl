@@ -13,7 +13,8 @@ enum _token_type {
                                *storage */
     TOKEN_STRING_OVERWRITE, /* Write the result directly to *storage, taking
                                storage_len into consideration */
-    TOKEN_UINT              /* Write the result to *storage */
+    TOKEN_UINT,             /* Write the result to *storage */
+    TOKEN_BYTE,             /* Write the result to *storage */
 };
 
 struct _token_store {
@@ -21,6 +22,7 @@ struct _token_store {
         char **str_new_storage;
         char *str_overwrite_storage;
         unsigned int *uint_storage;
+        unsigned char *byte_storage;
     };
     enum _token_type type;
     int storage_len;
@@ -39,6 +41,8 @@ struct _token_store {
     }
 #define TOKEN_UINT_STORE(x)                                                    \
     { .uint_storage = &(x), .type = TOKEN_UINT, .storage_len = sizeof((x)), }
+#define TOKEN_BYTE_STORE(x)                                                    \
+    { .byte_storage = &(x), .type = TOKEN_BYTE, .storage_len = sizeof((x)), }
 
 /* Returns pointer to where it left */
 static const char *tokenize_and_store(const char *str, const char delim,
@@ -57,9 +61,14 @@ static const char *tokenize_and_store(const char *str, const char delim,
         case TOKEN_STRING_OVERWRITE:
             strncpy(stores[token_pos].str_overwrite_storage, curr_token,
                     stores[token_pos].storage_len);
+            free(curr_token);
             break;
         case TOKEN_UINT:
             *stores[token_pos].uint_storage = atoi(curr_token);
+            free(curr_token);
+            break;
+        case TOKEN_BYTE:
+            *stores[token_pos].byte_storage = atoi(curr_token);
             free(curr_token);
             break;
         }
@@ -81,9 +90,14 @@ static const char *tokenize_and_store(const char *str, const char delim,
         case TOKEN_STRING_OVERWRITE:
             strncpy(stores[token_pos].str_overwrite_storage, curr_token,
                     stores[token_pos].storage_len);
+            free(curr_token);
             break;
         case TOKEN_UINT:
             *stores[token_pos].uint_storage = atoi(curr_token);
+            free(curr_token);
+            break;
+        case TOKEN_BYTE:
+            *stores[token_pos].byte_storage = atoi(curr_token);
             free(curr_token);
             break;
         }
@@ -130,11 +144,11 @@ int update_basic_info() {
 static PORT_INFO g_port_info;
 int update_port_info() {
     static const struct _token_store stores[] = {
-        TOKEN_UINT_STORE(g_port_info.eth_port1_conn),
-        TOKEN_UINT_STORE(g_port_info.eth_port2_conn),
-        TOKEN_UINT_STORE(g_port_info.eth_port3_conn),
-        TOKEN_UINT_STORE(g_port_info.eth_wan_conn),
-        TOKEN_UINT_STORE(g_port_info.usb_conn),
+        TOKEN_BYTE_STORE(g_port_info.eth_port1_conn),
+        TOKEN_BYTE_STORE(g_port_info.eth_port2_conn),
+        TOKEN_BYTE_STORE(g_port_info.eth_port3_conn),
+        TOKEN_BYTE_STORE(g_port_info.eth_wan_conn),
+        TOKEN_BYTE_STORE(g_port_info.usb_conn),
     };
     return update_storage_from_script(CFG->port_script, stores,
                                       sizeof(stores) / sizeof(stores[0]));
@@ -158,29 +172,29 @@ int update_wifi_info() {
 
         TOKEN_STRING_OVERWRITE_STORE(g_wifi_info.wl_24g_info.ssid),
         TOKEN_STRING_OVERWRITE_STORE(g_wifi_info.wl_24g_info.psk),
-        TOKEN_UINT_STORE(g_wifi_info.wl_24g_info.enabled),
-        TOKEN_UINT_STORE(g_wifi_info.wl_24g_info.sta_count),
+        TOKEN_BYTE_STORE(g_wifi_info.wl_24g_info.enabled),
+        TOKEN_BYTE_STORE(g_wifi_info.wl_24g_info.sta_count),
 
         TOKEN_STRING_OVERWRITE_STORE(g_wifi_info.wl_5g_info.ssid),
         TOKEN_STRING_OVERWRITE_STORE(g_wifi_info.wl_5g_info.psk),
-        TOKEN_UINT_STORE(g_wifi_info.wl_5g_info.enabled),
-        TOKEN_UINT_STORE(g_wifi_info.wl_5g_info.sta_count),
+        TOKEN_BYTE_STORE(g_wifi_info.wl_5g_info.enabled),
+        TOKEN_BYTE_STORE(g_wifi_info.wl_5g_info.sta_count),
 
         TOKEN_STRING_OVERWRITE_STORE(g_wifi_info.wl_visitor_info.ssid),
         TOKEN_STRING_OVERWRITE_STORE(g_wifi_info.wl_visitor_info.psk),
-        TOKEN_UINT_STORE(g_wifi_info.wl_visitor_info.enabled),
-        TOKEN_UINT_STORE(g_wifi_info.wl_visitor_info.sta_count),
+        TOKEN_BYTE_STORE(g_wifi_info.wl_visitor_info.enabled),
+        TOKEN_BYTE_STORE(g_wifi_info.wl_visitor_info.sta_count),
     };
     return update_storage_from_script(CFG->wifi_script, stores,
                                       sizeof(stores) / sizeof(stores[0]));
 }
 
 static struct _host_info_single *g_host_info_array;
-static int g_host_info_elements;
+static unsigned int g_host_info_elements;
 int update_host_info() {
     int ret = FAILURE;
     char *out = script_get_output(CFG->host_script);
-    char *curr_pos = out;
+    const char *curr_pos = out;
     if (out == NULL) {
         goto final_exit;
     }
@@ -219,7 +233,7 @@ int update_host_info() {
         host_info_tokens[0].uint_storage = &g_host_info_array[i].download_Bps;
         host_info_tokens[1].uint_storage = &g_host_info_array[i].upload_Bps;
         host_info_tokens[2].str_overwrite_storage =
-            &g_host_info_array[i].hostname;
+            g_host_info_array[i].hostname;
         host_info_tokens[3].uint_storage = &g_host_info_array[i].logo;
 
         curr_pos = tokenize_and_store(curr_pos, '\n', host_info_tokens,
@@ -240,5 +254,15 @@ int update_host_info() {
 free_exit:
     free(out);
 final_exit:
+    return ret;
+}
+
+int update_all() {
+    int ret = 0;
+    ret |= update_basic_info();
+    ret |= update_port_info();
+    ret |= update_wan_info();
+    ret |= update_wifi_info();
+    ret |= update_host_info();
     return ret;
 }

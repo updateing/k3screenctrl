@@ -48,7 +48,7 @@ int mask_memory_byte(off_t addr, int mask, int field_value) {
     unsigned char read_result = *((unsigned char *)virt_addr);
 
     if (read_result != data) {
-        syslog(LOG_INFO, "Written %llx with %hhx but read %hhx back\n", addr,
+        syslog(LOG_INFO, "Written %zx with %hhx but read %hhx back\n", addr,
                data, read_result);
     }
 

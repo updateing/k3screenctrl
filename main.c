@@ -4,6 +4,7 @@
 #include "frame_tx.h"
 #include "gpio.h"
 #include "handlers.h"
+#include "infocenter.h"
 #include "mcu_proto.h"
 #include "mem_util.h"
 #include "serial_port.h"
@@ -86,6 +87,7 @@ static int screen_initialize(int skip_reset) {
 void cleanup() { config_free(); }
 
 int main(int argc, char *argv[]) {
+#if 0
     atexit(cleanup);
 
     config_load_defaults();
@@ -98,4 +100,10 @@ int main(int argc, char *argv[]) {
     serial_set_pollin_callback(frame_notify_serial_recv);
     frame_set_received_callback(frame_handler);
     serial_start_poll_loop();
+#else
+    config_load_defaults();
+    config_parse_cmdline(argc, argv);
+
+    update_all();
+#endif
 }

@@ -11,18 +11,18 @@ static void config_show_help() {
     fprintf(
         stderr,
         "USAGE: k3screenctrl [OPTIONS]\n\n"
-        "\t\t\t-h, --help\t\tShow this help"
-        "\t\t\t-r, --skip-reset\t\tDo not reset screen on startup (will reset "
+        "\t-h, --help\t\t\tShow this help\n"
+        "\t-r, --skip-reset\t\tDo not reset screen on startup (will reset "
         "by default)\n"
-        "\t\t\t-s, --host-script <PATH>\t\tUse this script to gather hosts "
+        "\t-s, --host-script <PATH>\tUse this script to gather hosts "
         "info\n"
-        "\t\t\t-w, --wifi-script <PATH>\t\tUse this script to gather WiFi "
+        "\t-w, --wifi-script <PATH>\tUse this script to gather WiFi "
         "info\n"
-        "\t\t\t-w, --port-script <PATH>\t\tUse this script to gather port "
+        "\t-p, --port-script <PATH>\tUse this script to gather port "
         "info\n"
-        "\t\t\t-w, --wan-script <PATH>\t\tUse this script to gather WAN speed "
+        "\t-n, --wan-script <PATH>\t\tUse this script to gather WAN speed "
         "and internet connection info\n"
-        "\t\t\t-w, --basic-info-script <PATH>\t\tUse this script to gather "
+        "\t-i, --basic-info-script <PATH>\tUse this script to gather "
         "basic info\n"
         "\nThe defaults are /lib/k3screenctrl/{host,wifi,port,wan,basic}.sh\n");
     exit(1);
