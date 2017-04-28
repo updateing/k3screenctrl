@@ -1,3 +1,4 @@
+#include "actions.h"
 #include "common.h"
 #include "config.h"
 #include "frame_tx.h"
@@ -7,6 +8,7 @@
 #include "logging.h"
 #include "mcu_proto.h"
 #include "mem_util.h"
+#include "requests.h"
 #include "serial_port.h"
 
 #include <errno.h>

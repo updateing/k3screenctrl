@@ -47,7 +47,7 @@ void config_parse_cmdline(int argc, char *argv[]) {
     static const char *short_opts = "hfrts:w:p:n:i:";
 
     int opt_index;
-    char result;
+    signed char result;
     while ((result = getopt_long(argc, argv, short_opts, long_options,
                                  &opt_index)) != -1) {
         switch (result) {
