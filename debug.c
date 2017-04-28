@@ -61,3 +61,12 @@ void print_host_info(struct _host_info_single *info, int len) {
                info[i].hostname, info[i].logo);
     }
 }
+
+static void print_buf(const unsigned char *buf, int len) {
+    printf("RCVD %d bytes\n", len);
+
+    for (int i = 0; i < len; i++) {
+        printf("0x%hhx ", buf[i]);
+    }
+    printf("\n");
+}

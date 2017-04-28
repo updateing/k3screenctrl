@@ -29,15 +29,6 @@
  */
 #define SCREEN_RESET_GPIO 8
 
-static void print_buf(const unsigned char *buf, int len) {
-    printf("RCVD %d bytes\n", len);
-
-    for (int i = 0; i < len; i++) {
-        printf("0x%hhx ", buf[i]);
-    }
-    printf("\n");
-};
-
 static void frame_handler(const unsigned char *frame, int len) {
     if (frame[0] != PAYLOAD_HEADER) {
         syslog(LOG_WARNING, "frame with unknown type received: %hhx\n",
@@ -57,7 +48,6 @@ static void frame_handler(const unsigned char *frame, int len) {
 
     syslog(LOG_WARNING, "frame with unknown response type received: %hhx\n",
            frame[1]);
-    print_buf(frame, len);
 }
 
 static int screen_initialize(int skip_reset) {
@@ -67,6 +57,12 @@ static int screen_initialize(int skip_reset) {
         if (gpio_export(SCREEN_BOOT_MODE_GPIO) == FAILURE ||
             gpio_export(SCREEN_RESET_GPIO) == FAILURE) {
             syslog(LOG_ERR, "Could not export GPIOs\n");
+            return FAILURE;
+        }
+
+        if (gpio_set_direction(SCREEN_BOOT_MODE_GPIO, GPIO_OUT) == FAILURE ||
+            gpio_set_direction(SCREEN_RESET_GPIO, GPIO_OUT) == FAILURE) {
+            syslog(LOG_ERR, "Could not set GPIO direction\n");
             return FAILURE;
         }
 
