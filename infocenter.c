@@ -53,7 +53,8 @@ static void token_store(const struct _token_store *store_info, char *token) {
         break;
     case TOKEN_STRING_OVERWRITE:
         strncpy(store_info->str_overwrite_storage, token,
-                store_info->storage_len);
+                store_info->storage_len - 1);
+        store_info->str_overwrite_storage[store_info->storage_len - 1] = 0;
         free(token);
         break;
     case TOKEN_UINT:
