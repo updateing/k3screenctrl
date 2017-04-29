@@ -20,8 +20,8 @@ print_usb_port_status() {
     fi
 }
 
-print_eth_port_status 1 # Labeled LAN1
-print_eth_port_status 0 # LAN2
+print_eth_port_status 1 # Port 1 is LAN1 on label
+print_eth_port_status 0 # Port 0 is LAN2 on label
 print_eth_port_status 2 # LAN3
 print_eth_port_status 3 # WAN
 print_usb_port_status

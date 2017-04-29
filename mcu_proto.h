@@ -88,11 +88,11 @@ typedef enum _page {
 
 /* REQUEST_UPDATE_PORTS */
 typedef struct _port_info {
-    unsigned char eth_port2_conn;
-    unsigned char eth_port1_conn;
-    unsigned char eth_port3_conn;
+    unsigned char eth_port1_conn; // Switch port 1
+    unsigned char eth_port2_conn; // Switch port 0
+    unsigned char eth_port3_conn; // Switch port 2
     unsigned char PAD1;
-    unsigned char eth_wan_conn;
+    unsigned char eth_wan_conn; // Switch port 3
     unsigned char usb_conn;
     unsigned char PAD2[2];
 } PORT_INFO;
