@@ -9,14 +9,14 @@ typedef struct _config {
      * Expected output format (one line for each field):
      * MODEL
      * HW version
+     * FW version
      * MAC address
-     * SW version
      *
      * Example:
      * K3
      * A1
-     * 02:00:00:00:00:00
      * r3921
+     * 02:00:00:00:00:00
      */
     char *basic_info_script;
 #define DEFAULT_BASIC_INFO_SCRIPT "/lib/k3screen/basic.sh"
