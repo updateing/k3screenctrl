@@ -8,7 +8,7 @@
 #include "requests.h"
 
 static int g_host_page = 0;
-static int g_current_page = PAGE_WAN;
+static PAGE g_current_page = PAGE_WAN;
 
 struct _host_info_single *get_hosts() {
     return g_host_info_array;
@@ -52,11 +52,29 @@ void page_send_initial_data() {
     request_switch_page(PAGE_WAN);
 }
 
-void page_update() { update_page_info(g_current_page); }
+void page_update() {
+    switch (g_current_page) {
+    case PAGE_WAN:
+        update_page_info(PAGE_WAN);
+        update_page_info(PAGE_WIFI); // Shows STA count on WAN page
+        break;
+    case PAGE_BASIC_INFO:
+        return; // Will not change
+    default:
+        update_page_info(g_current_page);
+        break;
+    }
+}
 
 void page_refresh() {
-    send_page_data(g_current_page);
-    request_switch_page(g_current_page);
+    switch (g_current_page) {
+    case PAGE_WAN:
+        send_page_data(PAGE_WAN);
+        send_page_data(PAGE_WIFI); // Shows STA count on WAN page
+        break;
+    default:
+        send_page_data(g_current_page);
+    }
 }
 
 void page_switch_to(PAGE page) {
@@ -72,12 +90,14 @@ void page_switch_next() {
         if (g_current_page < PAGE_MAX) {
             g_current_page++;
             page_refresh();
+            request_switch_page(g_current_page);
         }
     } else {
         /* In PAGE_HOSTS */
         if (get_hosts_count() - (g_host_page + 1) * HOSTS_PER_PAGE > 0) {
             g_host_page++;
             page_refresh();
+            request_switch_page(g_current_page);
         }
     }
 }
@@ -87,6 +107,7 @@ void page_switch_prev() {
         if (g_current_page > PAGE_MIN) {
             g_current_page--;
             page_refresh();
+            request_switch_page(g_current_page);
         }
     } else {
         /* In PAGE_HOSTS */
@@ -96,5 +117,6 @@ void page_switch_prev() {
             g_current_page--;
         }
         page_refresh();
+        request_switch_page(g_current_page);
     }
 }
