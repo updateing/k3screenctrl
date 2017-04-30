@@ -4,19 +4,17 @@ COMPLETE_STAT=`wifi status`
 
 print_wifi_info() {
     local ucidev=$1 ifname=$2
-    local complete_stat status enabled ssid psk client_count
+    local status device_json ssid psk client_count=0 enabled=0
 
-    status=`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev.disabled"`
-    if [ "x$status" == "xtrue" -o -z "`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev"`" ]; then
-        ssid=
-        psk=
-        client_count=0
-        enabled=0
-    elif [ "x$status" == "xfalse" ]; then
-        ssid=`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev.interfaces[0].config.ssid"`
-        psk=`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev.interfaces[0].config.key"`
-        client_count=`iw dev $ifname station dump | grep Station | wc -l`
-        enabled=1
+    device_json=`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev"`
+    if [ -n "$device_json" ]; then
+        status=`echo $device_json | jsonfilter -e "@.disabled"`
+        if [ "x$status" == "xfalse" -a -n "` echo $device_json | jsonfilter -e \"@.interfaces[0]\"`" ]; then
+            ssid=`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev.interfaces[0].config.ssid"`
+            psk=`echo $COMPLETE_STAT | jsonfilter -e "@.$ucidev.interfaces[0].config.key"`
+            client_count=`iw dev $ifname station dump | grep Station | wc -l`
+            enabled=1
+        fi
     fi
 
     echo $ssid
