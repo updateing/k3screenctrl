@@ -257,7 +257,7 @@ int update_page_info(PAGE page) {
         updater = update_basic_info;
         break;
     case PAGE_PORTS:
-        updater = update_page_info;
+        updater = update_port_info;
         break;
     case PAGE_WAN:
         updater = update_wan_info;

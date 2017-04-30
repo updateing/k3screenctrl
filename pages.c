@@ -82,6 +82,7 @@ void page_switch_to(PAGE page) {
         g_current_page = page;
         g_host_page = 0;
         page_refresh();
+        request_switch_page(g_current_page);
     }
 }
 

@@ -13,9 +13,9 @@
 #include "signals.h"
 
 #include <errno.h>
+#include <poll.h>
 #include <stdlib.h>
 #include <string.h>
-#include <poll.h>
 #include <syslog.h>
 #include <unistd.h>
 
