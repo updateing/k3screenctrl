@@ -1,11 +1,10 @@
 #!/bin/sh
 
-SWCFG_OUT=`swconfig dev switch0 show`
-
 print_eth_port_status() {
     local port=$1
 
-    if [ -n "`echo $SWCFG_OUT | grep \"port:$port link:up\"`" ]; then
+    # One `swconfig dev switch0 show` wastes more time than 4 `port show`
+    if [ -n "`swconfig dev switch0 port $port show | grep \"link:up\"`" ]; then
         echo 1
     else
         echo 0
