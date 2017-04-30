@@ -2,4 +2,4 @@
 a.out
 *.o
 .deps/
-k3screenctrl
+src/k3screenctrl
