@@ -1,3 +1,5 @@
 .DS_Store
 a.out
-test
+*.o
+.deps/
+k3screenctrl
