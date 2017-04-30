@@ -26,5 +26,5 @@ AC_FUNC_MALLOC
 AC_FUNC_MMAP
 AC_CHECK_FUNCS([alarm atexit bzero memchr memmove munmap strchr strdup strerror strndup])
 
-AC_CONFIG_FILES([Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile lib/Makefile])
 AC_OUTPUT
