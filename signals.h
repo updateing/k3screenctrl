@@ -13,4 +13,9 @@ int signal_setup();
  */
 void signal_notify();
 
+/**
+ * Notify there is user interaction (and turn off screen after timeout)
+ * (like keypad backlight on phones)
+ */
+void refresh_screen_timeout();
 #endif

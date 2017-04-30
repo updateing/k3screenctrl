@@ -52,20 +52,20 @@ void page_send_initial_data() {
     request_switch_page(PAGE_WAN);
 }
 
+/* Collect info by running scripts */
 void page_update() {
     switch (g_current_page) {
     case PAGE_WAN:
         update_page_info(PAGE_WAN);
         update_page_info(PAGE_WIFI); // Shows STA count on WAN page
         break;
-    case PAGE_BASIC_INFO:
-        return; // Will not change
     default:
         update_page_info(g_current_page);
         break;
     }
 }
 
+/* Sends collected info to screen but do not switch to the page */
 void page_refresh() {
     switch (g_current_page) {
     case PAGE_WAN:
@@ -74,6 +74,7 @@ void page_refresh() {
         break;
     default:
         send_page_data(g_current_page);
+        break;
     }
 }
 

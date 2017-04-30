@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/signalfd.h>
 #include <syslog.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "config.h"
@@ -36,6 +37,18 @@ int signal_setup() {
     return g_signal_fd;
 }
 
+static time_t g_last_check_time;
+void refresh_screen_timeout() { g_last_check_time = time(NULL); }
+
+static void check_screen_timeout() {
+    if (CFG->screen_timeout != 0 &&
+        time(NULL) - g_last_check_time >= CFG->screen_timeout) {
+        extern int g_is_screen_on;
+        g_is_screen_on = 0; /* Do not process key messages - just wake up if there are any */
+        request_notify_event(EVENT_SLEEP);
+    }
+}
+
 void signal_notify() {
     struct signalfd_siginfo siginfo;
     if (read(g_signal_fd, &siginfo, sizeof(siginfo)) <= 0) {
@@ -49,6 +62,7 @@ void signal_notify() {
     case SIGALRM:
         page_update();
         page_refresh();
+        check_screen_timeout();
         alarm(CFG->update_interval);
         break;
     case SIGTERM:

@@ -144,6 +144,7 @@ int main(int argc, char *argv[]) {
     frame_set_received_callback(frame_handler);
     request_mcu_version();
     page_send_initial_data();
+    refresh_screen_timeout();
     alarm(CFG->update_interval);
     pollin_loop(serial_fd, signal_fd);
 }

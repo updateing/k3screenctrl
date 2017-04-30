@@ -6,6 +6,7 @@
 #include "mcu_proto.h"
 #include "pages.h"
 #include "requests.h"
+#include "signals.h"
 
 static MCU_VERSION g_mcu_version;
 void handle_mcu_version(const unsigned char *payload, int len) {
@@ -25,14 +26,16 @@ void handle_mcu_version(const unsigned char *payload, int len) {
            g_mcu_version.patch_ver);
 }
 
-static int g_is_screen_on = 1;
+int g_is_screen_on = 1;
 void handle_key_press(const unsigned char *payload, int len) {
     if (len < 1) {
         syslog(LOG_WARNING, "Got malformed key press response. Length is %d\n",
                len);
         return;
     }
+    refresh_screen_timeout();
     if (!g_is_screen_on) {
+        /* Do not process key messages when waking up */
         request_notify_event(EVENT_WAKEUP);
         g_is_screen_on = 1;
         return;

@@ -139,12 +139,19 @@ typedef struct _config {
 
     /**
      * Update interval. Scripts corresponding to current page will be called
-     * with this interval. Should not be shorter than the time scripts take.
+     * with this interval (seconds). Should not be shorter than the time
+     * scripts take.
      * Note: PAGE_WAN requires 2 scripts to gather enough data, while other
      * pages require only 1 each.
      */
     int update_interval;
 #define DEFAULT_UPDATE_INTERVAL 2
+
+    /**
+     * Turn off screen after this time (seconds). 0 to disable.
+     */
+    int screen_timeout;
+#define DEFAULT_SCREEN_TIMEOUT 10
 } CONFIG;
 
 void config_parse_cmdline(int argc, char *argv[]);

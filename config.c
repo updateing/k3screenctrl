@@ -16,10 +16,12 @@ static void config_show_help() {
         "by default)\n"
         "\t-f, --foreground\t\tRun in foreground and print logs to stderr "
         "as well\n"
-        "\t-t, --test\t\t\tTest the scripts: collect info and print them, then"
+        "\t-t, --test\t\t\tTest the scripts: collect info and print them, then "
         "exit\n"
         "\t-d, --update-interval <SECS>\tCall data collection scripts "
-        "corresponding to current page every SECS seconds\n"
+        "corresponding to current page and update content every SECS seconds\n"
+        "\t-m, --screen-timeout <SECS>\tTurn off screen after this period of "
+        "time if there isn't any user interaction\n"
         "\t-s, --host-script <PATH>\tUse this script to gather hosts "
         "info\n"
         "\t-w, --wifi-script <PATH>\tUse this script to gather WiFi "
@@ -42,13 +44,14 @@ void config_parse_cmdline(int argc, char *argv[]) {
         {"skip-reset", no_argument, NULL, 'r'},
         {"test", no_argument, NULL, 't'},
         {"update-interval", required_argument, NULL, 'd'},
+        {"screen-timeout", required_argument, NULL, 'm'},
         {"host-script", required_argument, NULL, 's'},
         {"wifi-script", required_argument, NULL, 'w'},
         {"port-script", required_argument, NULL, 'p'},
         {"wan-script", required_argument, NULL, 'n'},
         {"basic-info-script", required_argument, NULL, 'i'},
         {0, 0, 0, 0}};
-    static const char *short_opts = "hfrtd:s:w:p:n:i:";
+    static const char *short_opts = "hfrtd:m:s:w:p:n:i:";
 
     int opt_index;
     signed char result;
@@ -69,6 +72,9 @@ void config_parse_cmdline(int argc, char *argv[]) {
             break;
         case 'd':
             g_config.update_interval = atoi(optarg);
+            break;
+        case 'm':
+            g_config.screen_timeout = atoi(optarg);
             break;
         case 's':
             free(g_config.host_script);
@@ -99,6 +105,7 @@ void config_load_defaults() {
     g_config.foreground = DEFAULT_FOREGROUND;
     g_config.test_mode = DEFAULT_TEST_MODE;
     g_config.update_interval = DEFAULT_UPDATE_INTERVAL;
+    g_config.screen_timeout = DEFAULT_SCREEN_TIMEOUT;
     g_config.host_script = strdup(DEFAULT_HOST_SCRIPT);
     g_config.wifi_script = strdup(DEFAULT_WIFI_SCRIPT);
     g_config.port_script = strdup(DEFAULT_PORT_SCRIPT);
