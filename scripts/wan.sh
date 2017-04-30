@@ -1,8 +1,10 @@
 #!/bin/sh
 
-COREUTILS_DATE=`/usr/bin/date`
+# Basic vars
 TEMP_FILE="/tmp/wan_speed_temp"
 WAN_IFNAME=`uci get network.wan.ifname`
+
+# Internet connectivity
 IPV4_ADDR=`ip -4 addr show dev $WAN_IFNAME scope global`
 IPV6_ADDR=`ip -6 addr show dev $WAN_IFNAME scope global`
 
@@ -12,39 +14,50 @@ else
     CONNECTED=0
 fi
 
-CURR_TIME=$($COREUTILS_DATE +%s%N)
+# Calculate speed by traffic delta / time delta
+# NOTE: /proc/net/dev updates every ~1s.
+# You must call this script with longer interval!
+CURR_TIME=$(date +%s)
 CURR_STAT=$(cat /proc/net/dev | grep $WAN_IFNAME | sed -e 's/^ *//' -e 's/  */ /g')
 CURR_DOWNLOAD_BYTES=$(echo $CURR_STAT | cut -d " " -f 2)
 CURR_UPLOAD_BYTES=$(echo $CURR_STAT | cut -d " " -f 10)
 
-LINENO=0
-while read line; do
-    case "$LINENO" in
-        0)
-            LAST_TIME=$line
-            ;;
-        1)
-            LAST_UPLOAD_BYTES=$line
-            ;;
-        2)
-            LAST_DOWNLOAD_BYTES=$line
-            ;;
-        *)
-            ;;
-    esac
-    LINENO=$(($LINENO+1))
-done < $TEMP_FILE
+if [ -e "$TEMP_FILE" ]; then
+    LINENO=0
+    while read line; do
+        case "$LINENO" in
+            0)
+                LAST_TIME=$line
+                ;;
+            1)
+                LAST_UPLOAD_BYTES=$line
+                ;;
+            2)
+                LAST_DOWNLOAD_BYTES=$line
+                ;;
+            *)
+                ;;
+        esac
+        LINENO=$(($LINENO+1))
+    done < $TEMP_FILE
+fi
 
 echo $CURR_TIME > $TEMP_FILE
 echo $CURR_UPLOAD_BYTES >> $TEMP_FILE
 echo $CURR_DOWNLOAD_BYTES >> $TEMP_FILE
 
-TIME_DELTA_S=$((($CURR_TIME-$LAST_TIME)/1000000000))
-if [ $TIME_DELTA_S -eq 0 ]; then
-    TIME_DELTA_S=1
+if [ -z "$LAST_TIME" -o -z "$LAST_UPLOAD_BYTES" -o -z "$LAST_DOWNLOAD_BYTES" ]; then
+    # First time of launch
+    UPLOAD_BPS=0
+    DOWNLOAD_BPS=0
+else
+    TIME_DELTA_S=$(($CURR_TIME-$LAST_TIME))
+    if [ $TIME_DELTA_S -eq 0 ]; then
+        TIME_DELTA_S=1
+    fi
+    UPLOAD_BPS=$((($CURR_UPLOAD_BYTES-$LAST_UPLOAD_BYTES)/$TIME_DELTA_S))
+    DOWNLOAD_BPS=$((($CURR_DOWNLOAD_BYTES-$LAST_DOWNLOAD_BYTES)/$TIME_DELTA_S))
 fi
-UPLOAD_BPS=$((($CURR_UPLOAD_BYTES-$LAST_UPLOAD_BYTES)/$TIME_DELTA_S))
-DOWNLOAD_BPS=$((($CURR_DOWNLOAD_BYTES-$LAST_DOWNLOAD_BYTES)/$TIME_DELTA_S))
 
 echo $CONNECTED
 echo $UPLOAD_BPS
