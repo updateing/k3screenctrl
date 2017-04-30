@@ -19,7 +19,7 @@ typedef struct _config {
      * 02:00:00:00:00:00
      */
     char *basic_info_script;
-#define DEFAULT_BASIC_INFO_SCRIPT "/lib/k3screen/basic.sh"
+#define DEFAULT_BASIC_INFO_SCRIPT "/lib/k3screenctrl/basic.sh"
 
     /**
      * This script will be called in order to get ports info.
@@ -39,7 +39,7 @@ typedef struct _config {
      * 1
      */
     char *port_script;
-#define DEFAULT_PORT_SCRIPT "/lib/k3screen/port.sh"
+#define DEFAULT_PORT_SCRIPT "/lib/k3screenctrl/port.sh"
 
     /**
      * This script will be called in order to get WAN speed info.
@@ -55,7 +55,7 @@ typedef struct _config {
      * 2048000
      */
     char *wan_script;
-#define DEFAULT_WAN_SCRIPT "/lib/k3screen/wan.sh"
+#define DEFAULT_WAN_SCRIPT "/lib/k3screenctrl/wan.sh"
 
     /**
      * This script will be called in order to get WiFi info.
@@ -91,7 +91,7 @@ typedef struct _config {
      * 0
      */
     char *wifi_script;
-#define DEFAULT_WIFI_SCRIPT "/lib/k3screen/wifi.sh"
+#define DEFAULT_WIFI_SCRIPT "/lib/k3screenctrl/wifi.sh"
 
     /**
      * This script will be called in order to get host info.
@@ -116,7 +116,7 @@ typedef struct _config {
      * 0
      */
     char *host_script;
-#define DEFAULT_HOST_SCRIPT "/lib/k3screen/host.sh"
+#define DEFAULT_HOST_SCRIPT "/lib/k3screenctrl/host.sh"
 
     /**
      * Shall we skip GPIO setup (do not reset the microcontroller)?
