@@ -6,6 +6,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "mcu_proto.h"
 #include "pages.h"
 #include "requests.h"
@@ -48,7 +49,7 @@ void signal_notify() {
     case SIGALRM:
         page_update();
         page_refresh();
-        alarm(2);
+        alarm(CFG->update_interval);
         break;
     case SIGTERM:
         request_notify_event(EVENT_REBOOT);

@@ -132,10 +132,19 @@ typedef struct _config {
 #define DEFAULT_FOREGROUND 0
 
     /**
-     * Script test mode. Collect data from scripts and print them, them exit
+     * Script test mode. Collect data from scripts and print them, then exit
      */
     int test_mode;
 #define DEFAULT_TEST_MODE 0
+
+    /**
+     * Update interval. Scripts corresponding to current page will be called
+     * with this interval. Should not be shorter than the time scripts take.
+     * Note: PAGE_WAN requires 2 scripts to gather enough data, while other
+     * pages require only 1 each.
+     */
+    int update_interval;
+#define DEFAULT_UPDATE_INTERVAL 2
 } CONFIG;
 
 void config_parse_cmdline(int argc, char *argv[]);
