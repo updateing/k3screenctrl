@@ -4,7 +4,7 @@
 #include <syslog.h>
 
 #include "common.h"
-#include "frame_tx.h"
+#include "frame.h"
 #include "mcu_proto.h"
 #include "serial_port.h"
 

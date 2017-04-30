@@ -1,21 +1,23 @@
-#include "actions.h"
 #include "common.h"
 #include "config.h"
-#include "frame_tx.h"
+#include "frame.h"
 #include "gpio.h"
 #include "handlers.h"
 #include "infocenter.h"
 #include "logging.h"
 #include "mcu_proto.h"
 #include "mem_util.h"
+#include "pages.h"
 #include "requests.h"
 #include "serial_port.h"
+#include "signals.h"
 
 #include <errno.h>
-#include <getopt.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <poll.h>
 #include <syslog.h>
+#include <unistd.h>
 
 /*
  * Detected on rising edge of RESET GPIO.
@@ -28,6 +30,8 @@
  * Resets the screen on rising edge
  */
 #define SCREEN_RESET_GPIO 8
+
+#define SERIAL_PORT_PATH "/dev/ttyS1"
 
 static void frame_handler(const unsigned char *frame, int len) {
     if (frame[0] != PAYLOAD_HEADER) {
@@ -74,20 +78,43 @@ static int screen_initialize(int skip_reset) {
         }
     }
 
-    if (serial_setup("/dev/ttyS1") == FAILURE) {
-        syslog(LOG_ERR, "Could not setup serial transport\n");
-        return FAILURE;
-    }
+    return SUCCESS;
+}
 
-    return request_mcu_version(); // At least we should be able to send
+/* Parameters here are too ugly */
+void pollin_loop(int serial_fd, int signal_fd) {
+    struct pollfd fds[2];
+    fds[0].fd = serial_fd;
+    fds[0].events = POLLIN;
+    fds[1].fd = signal_fd;
+    fds[1].events = POLLIN;
+
+    while (1) {
+        int readyfds = poll(fds, sizeof(fds) / sizeof(struct pollfd),
+                            SERIAL_POLL_INTERVAL_MS);
+        if (readyfds < 0) {
+            syslog(LOG_ERR, "poll() failed: %s", strerror(errno));
+            return;
+        } else if (readyfds > 0) {
+            if (fds[0].revents & POLLIN) {
+                frame_notify_serial_recv();
+            } else if (fds[1].revents & POLLIN) {
+                signal_notify();
+            }
+        }
+    }
 }
 
 void cleanup() {
+    serial_close();
     config_free();
     syslog_stop();
 }
 
 int main(int argc, char *argv[]) {
+    int signal_fd;
+    int serial_fd;
+
     atexit(cleanup);
 
     config_load_defaults();
@@ -106,8 +133,17 @@ int main(int argc, char *argv[]) {
         return -EIO;
     }
 
-    send_initial_data();
-    serial_set_pollin_callback(frame_notify_serial_recv);
+    if ((serial_fd = serial_setup("/dev/ttyS1")) < 0) {
+        return -EIO;
+    }
+
+    if ((signal_fd = signal_setup()) < 0) {
+        return -EIO;
+    }
+
     frame_set_received_callback(frame_handler);
-    serial_start_poll_loop();
+    request_mcu_version();
+    page_send_initial_data();
+    alarm(2);
+    pollin_loop(serial_fd, signal_fd);
 }

@@ -3,12 +3,7 @@
 
 #include "mcu_proto.h"
 
-int update_basic_info();
-int update_port_info();
-int update_wan_info();
-int update_wifi_info();
-int update_host_info();
-
+int update_page_info(PAGE page);
 int update_all_info();
 int print_all_info();
 

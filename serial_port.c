@@ -11,9 +11,7 @@
 #include "logging.h"
 #include "serial_port.h"
 
-int g_serial_fd = -1;
-int g_poll_loop_break_flag = 0;
-void (*g_serial_pollin_callback)();
+static int g_serial_fd = -1;
 
 int serial_setup(const char *dev_path) {
     struct termios serial_termios;
@@ -21,14 +19,14 @@ int serial_setup(const char *dev_path) {
     g_serial_fd = open(dev_path, O_RDWR | O_NOCTTY | O_NONBLOCK);
     if (g_serial_fd == -1) {
         syslog(LOG_CRIT, "could not open %s\n", dev_path);
-        return FAILURE;
+        return -1;
     }
 
     if (tcgetattr(g_serial_fd, &serial_termios)) {
         syslog(LOG_ERR, "could not get attrs from serial fd: %s\n",
                strerror(errno));
         serial_close();
-        return FAILURE;
+        return -1;
     }
 
     /* 115200 */
@@ -56,10 +54,10 @@ int serial_setup(const char *dev_path) {
         syslog(LOG_ERR, "could not set attrs for serial fd: %s\n",
                strerror(errno));
         serial_close();
-        return FAILURE;
+        return -1;
     }
 
-    return SUCCESS;
+    return g_serial_fd;
 }
 
 void serial_close() { close(g_serial_fd); }
@@ -70,32 +68,4 @@ int serial_write(const unsigned char *data, int len) {
 
 int serial_read(unsigned char *buf, int maxlen) {
     return read(g_serial_fd, buf, maxlen);
-}
-
-void serial_set_pollin_callback(void (*callback)()) {
-    g_serial_pollin_callback = callback;
-}
-
-void serial_break_poll_loop() { g_poll_loop_break_flag = 1; }
-
-void serial_start_poll_loop() {
-    struct pollfd fds[1];
-    fds[0].fd = g_serial_fd;
-    fds[0].events = POLLIN;
-
-    while (1) {
-        int result = poll(fds, sizeof(fds) / sizeof(struct pollfd),
-                          SERIAL_POLL_INTERVAL_MS);
-        if (result < 0) {
-            syslog(LOG_ERR, "poll() failed: %s", strerror(errno));
-            return;
-        } else if (result > 0) {
-            g_serial_pollin_callback();
-        }
-
-        if (g_poll_loop_break_flag) {
-            g_poll_loop_break_flag = 0;
-            return;
-        }
-    }
 }

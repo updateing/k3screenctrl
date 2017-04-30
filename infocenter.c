@@ -122,7 +122,7 @@ static int update_storage_from_script(const char *script,
 }
 
 BASIC_INFO g_basic_info;
-int update_basic_info() {
+static int update_basic_info() {
     static const struct _token_store stores[] = {
         TOKEN_STRING_OVERWRITE_STORE(g_basic_info.product_name),
         TOKEN_STRING_OVERWRITE_STORE(g_basic_info.hw_version),
@@ -134,7 +134,7 @@ int update_basic_info() {
 }
 
 PORT_INFO g_port_info;
-int update_port_info() {
+static int update_port_info() {
     static const struct _token_store stores[] = {
         TOKEN_BYTE_STORE(g_port_info.eth_port1_conn),
         TOKEN_BYTE_STORE(g_port_info.eth_port2_conn),
@@ -147,7 +147,7 @@ int update_port_info() {
 }
 
 WAN_INFO g_wan_info;
-int update_wan_info() {
+static int update_wan_info() {
     static const struct _token_store stores[] = {
         TOKEN_UINT_STORE(g_wan_info.is_connected),
         TOKEN_UINT_STORE(g_wan_info.tx_bytes_per_sec),
@@ -158,7 +158,7 @@ int update_wan_info() {
 }
 
 WIFI_INFO g_wifi_info;
-int update_wifi_info() {
+static int update_wifi_info() {
     static const struct _token_store stores[] = {
         TOKEN_UINT_STORE(g_wifi_info.band_mix),
 
@@ -183,7 +183,7 @@ int update_wifi_info() {
 
 struct _host_info_single *g_host_info_array;
 unsigned int g_host_info_elements;
-int update_host_info() {
+static int update_host_info() {
     int ret = FAILURE;
     char *out = script_get_output(CFG->host_script);
     const char *curr_pos = out;
@@ -221,7 +221,7 @@ int update_host_info() {
         TOKEN_UINT_STORE(g_host_info_array[0].upload_Bps),
         TOKEN_UINT_STORE(g_host_info_array[0].logo),
     };
-    for (int i = 0; i < g_host_info_elements; i++) {
+    for (unsigned int i = 0; i < g_host_info_elements; i++) {
         host_info_tokens[0].str_overwrite_storage =
             g_host_info_array[i].hostname;
         host_info_tokens[1].uint_storage = &g_host_info_array[i].download_Bps;
@@ -247,6 +247,34 @@ free_exit:
     free(out);
 final_exit:
     return ret;
+}
+
+int update_page_info(PAGE page) {
+    int (*updater)() = NULL;
+
+    switch (page) {
+    case PAGE_BASIC_INFO:
+        updater = update_basic_info;
+        break;
+    case PAGE_PORTS:
+        updater = update_page_info;
+        break;
+    case PAGE_WAN:
+        updater = update_wan_info;
+        break;
+    case PAGE_WIFI:
+        updater = update_wifi_info;
+        break;
+    case PAGE_HOSTS:
+        updater = update_host_info;
+        break;
+    }
+
+    if (updater != NULL) {
+        return updater();
+    } else {
+        return FAILURE;
+    }
 }
 
 int update_all_info() {

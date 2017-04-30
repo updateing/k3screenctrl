@@ -8,32 +8,15 @@
 #include "requests.h"
 
 static int g_host_page = 0;
+static int g_current_page = PAGE_WAN;
 
 struct _host_info_single *get_hosts() {
     return g_host_info_array;
 }
 
-int get_hosts_count() { return g_host_info_elements; }
+static int get_hosts_count() { return g_host_info_elements; }
 
-int select_prev_host_page() {
-    if (g_host_page <= 0) {
-        return FAILURE;
-    }
-
-    g_host_page--;
-    return SUCCESS;
-}
-
-int select_next_host_page() {
-    if (get_hosts_count() - g_host_page * (HOSTS_PER_PAGE + 1) <= 0) {
-        return FAILURE;
-    }
-
-    g_host_page++;
-    return SUCCESS;
-}
-
-void send_page_data(PAGE page) {
+static void send_page_data(PAGE page) {
     switch (page) {
     case PAGE_BASIC_INFO:
         request_update_basic_info(
@@ -60,11 +43,58 @@ void send_page_data(PAGE page) {
     }
 }
 
-void send_initial_data() {
+void page_send_initial_data() {
     send_page_data(PAGE_BASIC_INFO);
     send_page_data(PAGE_PORTS);
     send_page_data(PAGE_WAN);
     send_page_data(PAGE_WIFI);
     send_page_data(PAGE_HOSTS);
     request_switch_page(PAGE_WAN);
+}
+
+void page_update() { update_page_info(g_current_page); }
+
+void page_refresh() {
+    send_page_data(g_current_page);
+    request_switch_page(g_current_page);
+}
+
+void page_switch_to(PAGE page) {
+    if (page >= PAGE_MIN && page <= PAGE_MAX) {
+        g_current_page = page;
+        g_host_page = 0;
+        page_refresh();
+    }
+}
+
+void page_switch_next() {
+    if (g_current_page != PAGE_HOSTS) {
+        if (g_current_page < PAGE_MAX) {
+            g_current_page++;
+            page_refresh();
+        }
+    } else {
+        /* In PAGE_HOSTS */
+        if (get_hosts_count() - (g_host_page + 1) * HOSTS_PER_PAGE > 0) {
+            g_host_page++;
+            page_refresh();
+        }
+    }
+}
+
+void page_switch_prev() {
+    if (g_current_page != PAGE_HOSTS) {
+        if (g_current_page > PAGE_MIN) {
+            g_current_page--;
+            page_refresh();
+        }
+    } else {
+        /* In PAGE_HOSTS */
+        if (g_host_page > 0) {
+            g_host_page--;
+        } else {
+            g_current_page--;
+        }
+        page_refresh();
+    }
 }
