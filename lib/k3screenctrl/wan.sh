@@ -2,17 +2,27 @@
 
 # Basic vars
 TEMP_FILE="/tmp/wan_speed_temp"
-WAN_IFNAME=`uci get network.wan.ifname`
+WAN_STAT=`ifstatus wan`
+WAN6_STAT=`ifstatus wan6`
 
 # Internet connectivity
-IPV4_ADDR=`ip -4 addr show dev $WAN_IFNAME scope global`
-IPV6_ADDR=`ip -6 addr show dev $WAN_IFNAME scope global`
+IPV4_ADDR=`echo $WAN_STAT | jsonfilter -e "@['ipv4-address']"`
+IPV6_ADDR=`echo $WAN6_STAT | jsonfilter -e "@['ipv6-address']"`
 
 if [ -n "$IPV4_ADDR" -o -n "$IPV6_ADDR" ]; then
     CONNECTED=1
 else
     CONNECTED=0
 fi
+
+WAN_IFNAME=`echo $WAN_STAT | jsonfilter -e "@.l3_device"` # pppoe-wan
+if [ -z "$WAN_IFNAME" ]; then
+    WAN_IFNAME=`echo $WAN_STAT | jsonfilter -e "@.device"` # eth0.2
+    if [ -z "$WAN_IFNAME" ]; then
+        WAN_IFNAME=`uci get network.wan.ifname` # eth0.2
+    fi
+fi
+# If there is still no WAN iface found, the script will fail - but that's rare
 
 # Calculate speed by traffic delta / time delta
 # NOTE: /proc/net/dev updates every ~1s.
