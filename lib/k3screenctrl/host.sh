@@ -22,7 +22,6 @@ echo "${#online_list[@]}"
 for ((i=0;i<${#online_list[@]};i++))
 do
 	x=$(expr "${#online_list[@]}" - "$i" - "1")
-	#arp_list[i]=
 	homename=$(cat /tmp/dhcp.leases | grep ${online_list[i]} | awk '{print $4}')
 	echo $homename
 	echo ${up_sp[x]}
