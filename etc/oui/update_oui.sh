@@ -6,8 +6,8 @@ if [ -s "/tmp/oui.txt.md5" ]; then
 	if [ "$md5" != "$md5sum" ]; then
 		wget https://cdn.mivm.cn/OpenWrt/k3screenctrl/oui.txt -O /tmp/oui.txt
 		if [ -s "/tmp/oui.txt" ]; then
-			logger 屏幕设备图标 MAC 识别库 oui.txt 更新完成
 			mv /tmp/oui.txt /etc/oui/oui.txt
+			logger 屏幕设备图标 MAC 识别库 oui.txt 更新完成
 		fi
 	fi
 else
