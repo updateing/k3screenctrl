@@ -47,9 +47,9 @@ do
 	fi
 	up_sp=$((($now_speed_up - $last_speed_up) / $time_s))
 	dw_sp=$((($now_speed_dw - $last_speed_dw) / $time_s))
-	echo $now_speed_time > /tmp/lan_speed/${arp_ip[i]}
-	echo $now_speed_up >> /tmp/lan_speed/${arp_ip[i]}
-	echo $now_speed_dw >> /tmp/lan_speed/${arp_ip[i]}
+	echo $now_speed_time > /tmp/lan_speed/${online_list[i]}
+	echo $now_speed_up >> /tmp/lan_speed/${online_list[i]}
+	echo $now_speed_dw >> /tmp/lan_speed/${online_list[i]}
 	#依照前后相差的时间差来计算出平均速度，跟 WAN.sh 原理一样
 
 	if [ -z "$hostname" ]; then
