@@ -53,7 +53,7 @@ do
 	echo $now_speed_dw >> /tmp/lan_speed/${online_list[i]}
 
 	if [ -z "${hostname[i]}" -o "${hostname[i]}" = "*" ]; then
-		hostname="Unknown"
+		hostname[i]="Unknown"
 	fi
 	if [ -z "${logo[i]}" ]; then
 		logo[i]="0"
