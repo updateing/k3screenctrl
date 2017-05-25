@@ -32,7 +32,7 @@ fi
 
 for ((i=0;i<${#online_list[@]};i++))
 do
-	hostname[i]=$(cat /tmp/dhcp.leases | grep ${online_list[i]} | awk '{print $4}')
+	hostname[i]=$(grep ${online_list[i]} /tmp/dhcp.leases | awk '{print $4}')
 	hostmac=${mac_online_list[i]//:/} && hostmac=${hostmac:0:6}
 	logo[i]=$(grep -i "$hostmac" /etc/oui/oui.txt | awk '{print $1}')
 
@@ -58,10 +58,10 @@ do
 	if [ -z "${logo[i]}" ]; then
 		logo[i]="0"
 	fi
-	echo ${hostname[i]}
-	echo ${dw_sp[i]}
-	echo ${up_sp[i]}
-	echo ${logo[i]}
+	echo "${hostname[i]}"
+	echo "${dw_sp[i]}"
+	echo "${up_sp[i]}"
+	echo "${logo[i]}"
 done
 
 now_arp_refresh_time=$(date +%s)
@@ -72,10 +72,10 @@ if [ -s "/tmp/arp_refresh_time" ]; then
 		for ((i=0;i<${#online_list[@]};i++))
 		do
 			arp -d ${online_list[i]}
-			echo ${hostname[i]} >> /tmp/lan_online_list.temp
-			echo ${dw_sp[i]} >> /tmp/lan_online_list.temp
-			echo ${up_sp[i]} >> /tmp/lan_online_list.temp
-			echo ${logo[i]} >> /tmp/lan_online_list.temp
+			echo "${hostname[i]}" >> /tmp/lan_online_list.temp
+			echo "${dw_sp[i]}" >> /tmp/lan_online_list.temp
+			echo "${up_sp[i]}" >> /tmp/lan_online_list.temp
+			echo "${logo[i]}" >> /tmp/lan_online_list.temp
 		done
 		echo 0 >> /tmp/lan_online_list.temp
 		echo $now_arp_refresh_time > /tmp/arp_refresh_time
