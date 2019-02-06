@@ -13,21 +13,31 @@
 
 void (*g_frame_received_callback)(const unsigned char *frame, int len);
 
-int frame_send(const unsigned char *data, int len) {
-    /* Allocate max possible space (escape every byte, with header/trailer) */
-    unsigned char *buf = (unsigned char *)malloc(len * 2 + 4);
-    if (buf <= 0) {
+int frame_send(FRAME_TYPE type, const unsigned char *data, int len) {
+    /*
+     * Allocate max possible space (escape every byte,
+     * with header(1) + trailer(1) + type(1+1))
+     */
+    unsigned char *buf = (unsigned char *)malloc(len * 2 + 6);
+    if (buf == NULL) {
         syslog(LOG_ERR, "unable to allocate memory for TX buffer: %s",
                strerror(errno));
         return FAILURE;
     }
-    bzero(buf, len * 2 + 4);
+
+    unsigned char *crc_buf = (unsigned char *)malloc(len + 1);
+    if (crc_buf == NULL) {
+        free(buf);
+        syslog(LOG_ERR, "unable to allocate memory for CRC buffer: %s",
+               strerror(errno));
+        return FAILURE;
+    }
 
     /* Stage 1. Add header */
     int buf_pos = 0;
     buf[buf_pos++] = FRAME_HEADER; /* Header */
 
-/* Stage 2. Copy data, escaping FRAME_HEADER/TRAILER/ESCAPE */
+    /* Stage 2. Copy type and data, escaping FRAME_HEADER/TRAILER/ESCAPE */
 #define ESCAPE_AND_APPEND_BYTE(byte)                                           \
     do {                                                                       \
         if ((byte) == FRAME_HEADER || (byte) == FRAME_TRAILER ||               \
@@ -37,12 +47,17 @@ int frame_send(const unsigned char *data, int len) {
         buf[buf_pos++] = (byte);                                               \
     } while (0);
 
+    ESCAPE_AND_APPEND_BYTE(type);
+
     for (int data_pos = 0; data_pos < len; data_pos++) {
         ESCAPE_AND_APPEND_BYTE(data[data_pos]);
     }
 
     /* Stage 3. Checksum with the same escaping procedure */
-    unsigned short checksum = crc_xmodem(data, len);
+    crc_buf[0] = type;
+    memmove(crc_buf + 1, data, len);
+
+    unsigned short checksum = crc_xmodem(crc_buf, len + 1);
     ESCAPE_AND_APPEND_BYTE(checksum & 0xff);
     ESCAPE_AND_APPEND_BYTE((checksum & 0xff00) >> 8);
 
@@ -51,6 +66,7 @@ int frame_send(const unsigned char *data, int len) {
 
     int ret = serial_write(buf, buf_pos);
     free(buf);
+    free(crc_buf);
     return ret;
 }
 
@@ -129,6 +145,7 @@ void frame_notify_serial_recv() {
             frame_notify_received(g_serial_recv_buf,
                                   last_trailer - g_serial_recv_buf + 1);
             g_recv_buf_pos = 0;
+            bzero(g_serial_recv_buf, sizeof(g_serial_recv_buf));
             break; /* Do not support continous frames */
         } else {
             /* Escaped. Continue search from this place */

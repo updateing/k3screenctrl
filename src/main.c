@@ -11,6 +11,8 @@
 #include "requests.h"
 #include "serial_port.h"
 #include "signals.h"
+#include "hwdef.h"
+#include "firmware_upgrade.h"
 
 #include <errno.h>
 #include <poll.h>
@@ -18,20 +20,6 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
-
-/*
- * Detected on rising edge of RESET GPIO.
- * Low = Run app from ROM
- * High = Enter download mode and wait for a new app
- */
-#define SCREEN_BOOT_MODE_GPIO 7
-
-/*
- * Resets the screen on rising edge
- */
-#define SCREEN_RESET_GPIO 8
-
-#define SERIAL_PORT_PATH "/dev/ttyS1"
 
 static void frame_handler(const unsigned char *frame, int len) {
     if (frame[0] != FRAME_APP) {
@@ -54,7 +42,9 @@ static void frame_handler(const unsigned char *frame, int len) {
            frame[1]);
 }
 
-static int screen_initialize(int skip_reset) {
+static int screen_initialize(int skip_reset, int enter_dfu) {
+    int boot_gpio = !!enter_dfu;
+
     mask_memory_byte(0x1800c1c1, 0xf0, 0); /* Enable UART2 in DMU */
 
     if (!skip_reset) {
@@ -70,7 +60,7 @@ static int screen_initialize(int skip_reset) {
             return FAILURE;
         }
 
-        if (gpio_set_value(SCREEN_BOOT_MODE_GPIO, 0) == FAILURE ||
+        if (gpio_set_value(SCREEN_BOOT_MODE_GPIO, boot_gpio) == FAILURE ||
             gpio_set_value(SCREEN_RESET_GPIO, 0) == FAILURE ||
             gpio_set_value(SCREEN_RESET_GPIO, 1) == FAILURE) {
             syslog(LOG_ERR, "Could not reset screen\n");
@@ -137,7 +127,7 @@ int main(int argc, char *argv[]) {
         return -EIO;
     }
 
-    if ((serial_fd = serial_setup("/dev/ttyS1")) < 0) {
+    if ((serial_fd = serial_setup(SERIAL_PORT_PATH)) < 0) {
         return -EIO;
     }
 
@@ -145,10 +135,16 @@ int main(int argc, char *argv[]) {
         return -EIO;
     }
 
-    frame_set_received_callback(frame_handler);
-    request_mcu_version();
-    page_send_initial_data();
-    refresh_screen_timeout();
-    alarm(CFG->update_interval);
+    if (boot_mode == BOOT_MODE_APP) {
+        frame_set_received_callback(frame_handler);
+        request_mcu_version();
+        page_send_initial_data();
+        refresh_screen_timeout();
+        alarm(CFG->update_interval);
+    } else if (boot_mode == BOOT_MODE_BOOTLOADER) {
+        /* Make it handle everything */
+        fwupgrade_start();
+    }
+
     pollin_loop(serial_fd, signal_fd);
 }

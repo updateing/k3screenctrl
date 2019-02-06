@@ -152,6 +152,21 @@ typedef struct _config {
      */
     int screen_timeout;
 #define DEFAULT_SCREEN_TIMEOUT 10
+
+    /**
+     * If not empty, k3screenctrl will launch in firmware upgrade mode, where
+     * the program will only work as an updater and normal data updating
+     * routines are disabled. The program exits immediately after upgrading
+     * finishes.
+     * 
+     * This parameter takes a path to ".hex" file(iHex) from stock ROM. If not
+     * specified, it defaults to an empty string.
+     * 
+     * Remember to kill all running instances of k3screenctrl before attempting
+     * any upgrade!
+     */
+    char *firmware_path;
+#define DEFAULT_FIRMWARE_PATH ""
 } CONFIG;
 
 void config_parse_cmdline(int argc, char *argv[]);
