@@ -4,23 +4,30 @@
 /*
  * Frame structure:
  *
- * FRAME_HEADER | PAYLOAD_HEADER | PAYLOAD_TYPE | PAYLOAD | FRAME_TRAILER
+ * FRAME_HEADER + FRAME_TYPE + [ PAYLOAD_TYPE + ] PAYLOAD + CRC_XMODEM(PAYLOAD) + FRAME_TRAILER
  *
- * PAYLOAD_TYPE can be one of the item in REQUEST_TYPE (Tx) or RESPONSE_TYPE
-(Rx)
- * 0x01, 0x04 and 0x10 in PAYLOAD_* needs to be escaped by FRAME_ESCAPE.
+ * FRAME_HEADER  := 0x01
+ * FRAME_TRAILER := 0x04
  *
- * Actually there are frames with 0x01 and 0x02 as PAYLOAD_HEADER. Maybe this
-kind of
- * frames is only used when communicating with bootloader. We do not need them
-here
- * since we are not upgrading the bootloader.
+ * PAYLOAD_TYPE is only present when FRAME_TYPE is 0x30.
+ * If it exists, it can be one of the items in REQUEST_TYPE (Tx) or
+ * RESPONSE_TYPE (Rx).
+ *
+ * 0x01, 0x04 and 0x10 in FRAME_TYPE + PAYLOAD_* + CRC needs to be escaped
+ * by 0x10 before transmitting. The PAYLOAD in CRC_XMODEM(PAYLOAD) refers to
+ * original unescaped data.
  */
 
 #define FRAME_HEADER 0x01
 #define FRAME_TRAILER 0x04
 #define FRAME_ESCAPE 0x10
-#define PAYLOAD_HEADER 0x30
+
+typedef enum _frame_type {
+    FRAME_BL_MCU_VERSION_REQ = 1,
+    FRAME_BL_ERASE_REQ = 2,
+    FRAME_BL_FLASH_REQ = 3,
+    FRAME_APP = 0x30
+} FRAME_TYPE;
 
 typedef enum _request_type {
     REQUEST_GET_MCU_VERSION = 1,

@@ -34,7 +34,7 @@
 #define SERIAL_PORT_PATH "/dev/ttyS1"
 
 static void frame_handler(const unsigned char *frame, int len) {
-    if (frame[0] != PAYLOAD_HEADER) {
+    if (frame[0] != FRAME_APP) {
         syslog(LOG_WARNING, "frame with unknown type received: %hhx\n",
                frame[0]);
         return;
@@ -114,11 +114,15 @@ void cleanup() {
 int main(int argc, char *argv[]) {
     int signal_fd;
     int serial_fd;
+    int boot_mode = BOOT_MODE_APP;
 
     atexit(cleanup);
 
     config_load_defaults();
     config_parse_cmdline(argc, argv);
+    if (CFG->firmware_path[0] != '\0') {
+        boot_mode = BOOT_MODE_BOOTLOADER;
+    }
 
     syslog_setup(CFG->foreground);
 
@@ -129,7 +133,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    if (screen_initialize(CFG->skip_reset) == FAILURE) {
+    if (screen_initialize(CFG->skip_reset, boot_mode) == FAILURE) {
         return -EIO;
     }
 
